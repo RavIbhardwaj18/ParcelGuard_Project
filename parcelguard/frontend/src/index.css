@@ -1,0 +1,132 @@
+/* frontend/src/index.css */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Syne:wght@700;800&display=swap');
+
+:root {
+  --bg: #0d0f14;
+  --surface: #13161d;
+  --surface2: #1a1e28;
+  --surface3: #232838;
+  --border: #2a2f3f;
+  --border2: #353b50;
+  --tx: #f0f2f8;
+  --tx2: #9ca3b8;
+  --tx3: #5a6180;
+  --accent: #6366f1;
+  --accent-l: #818cf8;
+  --accent-bg: rgba(99, 102, 241, .12);
+  --accent-bd: rgba(99, 102, 241, .3);
+  --green: #22c55e;
+  --green-bg: rgba(34, 197, 94, .1);
+  --green-bd: rgba(34, 197, 94, .25);
+  --amber: #f59e0b;
+  --amber-bg: rgba(245, 158, 11, .1);
+  --amber-bd: rgba(245, 158, 11, .25);
+  --red: #ef4444;
+  --red-bg: rgba(239, 68, 68, .1);
+  --red-bd: rgba(239, 68, 68, .25);
+  --blue: #3b82f6;
+  --blue-bg: rgba(59, 130, 246, .1);
+  --blue-bd: rgba(59, 130, 246, .25);
+  --font: 'Inter', sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+  --display: 'Syne', sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  background: var(--bg);
+  color: var(--tx);
+}
+
+body {
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+input,
+select,
+textarea,
+button {
+  font-family: inherit;
+}
+
+::-webkit-scrollbar {
+  width: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border2);
+  border-radius: 3px;
+}
+
+*:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: var(--accent-bg);
+  color: var(--accent-l);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: .4;
+  }
+}
+
+.leaflet-container {
+  background: var(--bg) !important;
+  font-family: var(--font) !important;
+}

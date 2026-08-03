@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>ParcelGuard – Inquiry System</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Oswald:wght@500;600;700&display=swap');
+:root{
+  --bg:#0b0b10;--s1:#0f0f16;--s2:#14141c;--s3:#1a1a24;
+  --bd:#1e1e2e;--bd2:#262638;
+  --vio:#7c5cff;--vio-dim:#3a2c7a;--vio-bg:rgba(124,92,255,.07);
+  --teal:#26c6da;--teal-bg:rgba(38,198,218,.07);
+  --red:#ff5370;--red-bg:rgba(255,83,112,.07);
+  --amber:#ffb86c;--amber-bg:rgba(255,184,108,.07);
+  --green:#50fa7b;--green-bg:rgba(80,250,123,.07);
+  --slate:#8be9fd;--slate-bg:rgba(139,233,253,.06);
+  --tx:#e2e2ef;--tx2:#9090b0;--tx3:#50505a;
+  --font:'JetBrains Mono',monospace;
+  --title:'Oswald',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;}
+body{background:var(--bg);color:var(--tx);font-family:var(--font);overflow:hidden;}
+::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:2px;}
+input,select,textarea{font-family:var(--font);}
+input::placeholder,textarea::placeholder{color:var(--tx3);}
+select option{background:var(--s1);}
+
+/* ── Layout ── */
+.app{height:100vh;display:flex;flex-direction:column;}
+.topbar{padding:.95rem 2rem;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;background:var(--s1);flex-shrink:0;}
+.body{flex:1;display:grid;grid-template-columns:265px 1fr;min-height:0;}
+
+/* ── Sidebar ── */
+.sidebar{width:215px;background:var(--s1);border-right:1px solid var(--bd);display:flex;flex-direction:column;flex-shrink:0;}
+.sb-logo{padding:1.2rem 1rem .85rem;border-bottom:1px solid var(--bd);}
+.sb-logo .name{font-family:var(--title);font-size:1.05rem;font-weight:600;color:#e2e2ef;letter-spacing:.04em;}
+.sb-logo .name span{color:var(--vio);}
+.sb-logo .sub{font-size:.5rem;color:var(--tx3);margin-top:.18rem;letter-spacing:.1em;text-transform:uppercase;}
+.nav-item{display:flex;align-items:center;gap:.55rem;padding:.52rem 1rem;font-size:.67rem;cursor:pointer;border-left:2px solid transparent;transition:all .15s;color:var(--tx3);}
+.nav-item:hover{color:var(--tx2);background:rgba(124,92,255,.04);}
+.nav-item.active{color:var(--vio);background:rgba(124,92,255,.08);border-left-color:var(--vio);}
+.sb-foot{padding:.8rem 1rem;border-top:1px solid var(--bd);margin-top:auto;}
+
+/* ── List panel ── */
+.list-panel{border-right:1px solid var(--bd);display:flex;flex-direction:column;background:var(--s1);}
+.filter-bar{padding:.65rem .75rem;border-bottom:1px solid var(--bd);display:flex;flex-direction:column;gap:.45rem;flex-shrink:0;}
+.f-input{background:var(--s2);border:1px solid var(--bd2);border-radius:5px;padding:.38rem .6rem;color:var(--tx);font-size:.63rem;outline:none;width:100%;}
+.f-input:focus{border-color:var(--vio);}
+.f-select{flex:1;background:var(--s2);border:1px solid var(--bd2);border-radius:5px;padding:.33rem .48rem;color:var(--tx2);font-size:.58rem;outline:none;cursor:pointer;}
+.case-list{flex:1;overflow-y:auto;}
+.case-row{padding:.75rem .9rem;cursor:pointer;border-bottom:1px solid var(--bd);border-left:3px solid transparent;transition:all .12s;}
+.case-row:hover{background:rgba(255,255,255,.02);}
+.case-row.active{border-left-color:var(--vio);background:rgba(124,92,255,.06);}
+
+/* ── Detail panel ── */
+.detail-panel{display:flex;flex-direction:column;height:100%;}
+.detail-header{padding:.9rem 1.2rem;border-bottom:1px solid var(--bd);flex-shrink:0;}
+.detail-body{flex:1;overflow-y:auto;padding:1rem 1.2rem;}
+
+/* ── Pill ── */
+.pill{display:inline-block;padding:.13rem .48rem;border-radius:3px;font-size:.52rem;letter-spacing:.06em;}
+
+/* ── Meta grid ── */
+.meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:.55rem;margin-bottom:1rem;}
+.meta-cell{background:var(--s2);border-radius:6px;padding:.48rem .65rem;}
+.meta-l{font-size:.51rem;color:var(--tx3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.14rem;}
+.meta-v{font-size:.68rem;color:var(--tx);}
+
+/* ── Update box ── */
+.update-box{background:var(--s2);border:1px solid var(--bd2);border-radius:8px;padding:.8rem;margin-bottom:1rem;}
+.update-label{font-size:.52rem;color:var(--tx3);letter-spacing:.09em;text-transform:uppercase;margin-bottom:.25rem;}
+.u-select{width:100%;background:var(--s3);border:1px solid var(--bd2);border-radius:5px;padding:.4rem .6rem;color:var(--tx);font-size:.67rem;outline:none;cursor:pointer;}
+.u-textarea{width:100%;background:var(--s3);border:1px solid var(--bd2);border-radius:5px;padding:.42rem .62rem;color:var(--tx);font-size:.67rem;outline:none;resize:vertical;min-height:65px;line-height:1.5;}
+.save-btn{background:var(--vio-bg);border:1px solid var(--vio-dim);color:var(--vio);padding:.38rem .85rem;border-radius:5px;font-size:.6rem;font-family:var(--font);cursor:pointer;transition:all .2s;letter-spacing:.05em;display:inline-flex;align-items:center;gap:.35rem;}
+.save-btn:hover{background:rgba(124,92,255,.14);}
+.save-btn.saved{background:var(--green-bg);border-color:rgba(80,250,123,.3);color:var(--green);}
+
+/* ── Timeline ── */
+.timeline-entry{display:flex;gap:.7rem;padding-bottom:.9rem;position:relative;}
+.tl-dot{width:22px;height:22px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.58rem;z-index:1;}
+.tl-dot.system{background:var(--bd2);border:1px solid var(--bd2);}
+.tl-dot.human{background:var(--vio-bg);border:1px solid var(--vio-dim);}
+.tl-line{position:absolute;left:10px;top:22px;bottom:0;width:1px;background:var(--bd2);}
+
+/* ── Spinner ── */
+.spin{width:10px;height:10px;border:1.5px solid rgba(124,92,255,.35);border-top-color:var(--vio);border-radius:50%;animation:rotate .7s linear infinite;display:inline-block;}
+
+/* ── Status counter chips ── */
+.counter{text-align:center;padding:.38rem .75rem;background:var(--s2);border:1px solid var(--bd2);border-radius:7px;min-width:65px;}
+.counter .cnt-val{font-family:var(--title);font-size:1.15rem;line-height:1;}
+.counter .cnt-lbl{font-size:.48rem;color:var(--tx3);letter-spacing:.08em;margin-top:.08rem;}
+
+/* ── Empty state ── */
+.empty{display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;gap:1rem;color:var(--tx3);}
+
+@keyframes rotate{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes fadeIn{from{opacity:0;transform:translateX(-4px)}to{opacity:1;transform:translateX(0)}}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Topbar (inline with sidebar) -->
+  <div style="display:flex;flex-shrink:0;border-bottom:1px solid var(--bd);">
+    <!-- Sidebar logo -->
+    <div class="sidebar" style="border-right:1px solid var(--bd);border-bottom:none;">
+      <div class="sb-logo">
+        <div class="name">📦 Parcel<span>Guard</span></div>
+        <div class="sub">Supply Chain · Fraud Detection</div>
+      </div>
+      <nav style="padding:.55rem 0;flex:1;">
+        <div class="nav-item">🏭 Packing Portal</div>
+        <div class="nav-item">🚚 Delivery</div>
+        <div class="nav-item">🛡️ Admin</div>
+        <div class="nav-item active">🔍 Inquiries</div>
+        <div class="nav-item">⭐ Trust Scores</div>
+        <div class="nav-item">🗺️ Fraud Map</div>
+      </nav>
+      <div class="sb-foot">
+        <div style="font-size:.5rem;color:var(--tx3);letter-spacing:.08em;text-transform:uppercase;">API: localhost:8000</div>
+        <div style="margin-top:.25rem;font-size:.5rem;color:var(--vio);display:flex;align-items:center;gap:.3rem;">
+          <span style="width:5px;height:5px;border-radius:50%;background:var(--vio);display:inline-block;animation:pulse 2s infinite;"></span> SYSTEM ONLINE
+        </div>
+      </div>
+    </div>
+
+    <!-- Page header -->
+    <div style="flex:1;display:flex;align-items:center;justify-content:space-between;padding:.9rem 2rem;background:var(--s1);">
+      <div>
+        <div style="font-family:var(--title);font-size:1.55rem;color:var(--tx);letter-spacing:.06em;">🔍 INQUIRY SYSTEM</div>
+        <div style="font-size:.55rem;color:var(--tx3);margin-top:.1rem;letter-spacing:.1em;text-transform:uppercase;">Case Management · Investigation Tracking · Resolution</div>
+      </div>
+      <div style="display:flex;gap:.7rem;" id="counters"></div>
+    </div>
+  </div>
+
+  <!-- Body -->
+  <div style="flex:1;display:grid;grid-template-columns:215px 265px 1fr;min-height:0;">
+
+    <!-- Spacer to align under sidebar -->
+    <div style="border-right:1px solid var(--bd);"></div>
+
+    <!-- List panel -->
+    <div class="list-panel">
+      <div class="filter-bar">
+        <input class="f-input" placeholder="Search case / tracking / name…" id="searchInput" oninput="renderList()"/>
+        <div style="display:flex;gap:.4rem;">
+          <select class="f-select" id="statusFilter" onchange="renderList()">
+            <option value="all">All Status</option>
+            <option value="open">Open</option>
+            <option value="under_review">Reviewing</option>
+            <option value="escalated">Escalated</option>
+            <option value="resolved">Resolved</option>
+            <option value="dismissed">Dismissed</option>
+          </select>
+          <select class="f-select" id="sevFilter" onchange="renderList()">
+            <option value="all">All Severity</option>
+            <option value="critical">Critical</option>
+            <option value="high">High</option>
+            <option value="medium">Medium</option>
+            <option value="low">Low</option>
+          </select>
+        </div>
+      </div>
+      <div class="case-list" id="caseList"></div>
+    </div>
+
+    <!-- Detail panel -->
+    <div id="detailPanel" style="display:flex;flex-direction:column;overflow:hidden;"></div>
+
+  </div>
+</div>
+
+<script>
+const SEV = {
+  critical:{color:'#ff5370',bg:'rgba(255,83,112,.1)',label:'CRITICAL'},
+  high:    {color:'#ffb86c',bg:'rgba(255,184,108,.1)',label:'HIGH'},
+  medium:  {color:'#7c5cff',bg:'rgba(124,92,255,.1)',label:'MEDIUM'},
+  low:     {color:'#50fa7b',bg:'rgba(80,250,123,.08)',label:'LOW'},
+}
+const STAT = {
+  open:         {color:'#ffb86c',bg:'rgba(255,184,108,.1)',label:'OPEN'},
+  under_review: {color:'#8be9fd',bg:'rgba(139,233,253,.07)',label:'REVIEWING'},
+  escalated:    {color:'#ff5370',bg:'rgba(255,83,112,.08)',label:'ESCALATED'},
+  resolved:     {color:'#50fa7b',bg:'rgba(80,250,123,.08)',label:'RESOLVED'},
+  dismissed:    {color:'#50505a',bg:'rgba(80,80,90,.1)',label:'DISMISSED'},
+}
+const FTYPES = {courier_fraud:'Courier Fraud',seller_fraud:'Seller Fraud',multi_signal:'Multi-Signal',rfid_mismatch:'RFID Mismatch',weight_fraud:'Weight Fraud',dimension_fraud:'Dim. Fraud'}
+
+const CASES = [
+  {id:'iq1',case_number:'PG-2024-000012',status:'under_review',severity:'critical',tracking:'PGQ5P6T9',fraud_type:'multi_signal',fraud_score:91.0,customer_name:'James Okafor',customer_email:'james.o@email.com',seller:'FakeWatch Palace',courier:'Omar Hassan',origin_city:'Lagos',destination_city:'Chicago, IL',created_at:'2024-01-17T11:05:00',resolved_at:null,assigned_to:'Sarah Chen',auto_created:true,compensation_issued:false,
+    timeline:[
+      {ts:'2024-01-17 11:05',actor:'SYSTEM',msg:'Case auto-opened. AI fraud score: 91.0 — CRITICAL threshold exceeded.'},
+      {ts:'2024-01-17 11:06',actor:'SYSTEM',msg:'Multi-signal fraud detected: RFID mismatch + image anomaly (similarity 0.34).'},
+      {ts:'2024-01-17 11:40',actor:'Sarah Chen',msg:'Case assigned. Reviewing courier checkpoint logs and packing photos.'},
+      {ts:'2024-01-17 14:22',actor:'Sarah Chen',msg:'Contacted seller FakeWatch Palace — no response yet.'},
+      {ts:'2024-01-18 09:15',actor:'Sarah Chen',msg:'Confirmed item substitution at Newark hub. Escalating to law enforcement.'},
+    ]},
+  {id:'iq2',case_number:'PG-2024-000009',status:'open',severity:'high',tracking:'PGM2J7R5',fraud_type:'courier_fraud',fraud_score:84.2,customer_name:'Nina Petrova',customer_email:'n.petrova@mail.com',seller:'PremiumGoods',courier:'Dmitri Volkov',origin_city:'Miami, FL',destination_city:'Chicago, IL',created_at:'2024-01-17T14:32:00',resolved_at:null,assigned_to:null,auto_created:true,compensation_issued:false,
+    timeline:[
+      {ts:'2024-01-17 14:32',actor:'SYSTEM',msg:'Case auto-opened. Fraud score: 84.2 — HIGH threshold exceeded.'},
+      {ts:'2024-01-17 14:33',actor:'SYSTEM',msg:'Courier fraud attributed. Weight delta: 0.48kg. Image similarity: 0.41.'},
+    ]},
+  {id:'iq3',case_number:'PG-2024-000006',status:'resolved',severity:'high',tracking:'PGB2K8X1',fraud_type:'rfid_mismatch',fraud_score:78.5,customer_name:'Carlos Vega',customer_email:'cvega@outlook.com',seller:'TechZone Store',courier:'Rico Espinoza',origin_city:'New York, NY',destination_city:'Los Angeles, CA',created_at:'2024-01-16T16:20:00',resolved_at:'2024-01-18T10:30:00',assigned_to:'Mike Torres',auto_created:true,compensation_issued:true,
+    timeline:[
+      {ts:'2024-01-16 16:20',actor:'SYSTEM',msg:'Case auto-opened. RFID mismatch at Los Angeles hub.'},
+      {ts:'2024-01-16 17:05',actor:'Mike Torres',msg:'Assigned. Reviewing courier route logs.'},
+      {ts:'2024-01-17 09:30',actor:'Mike Torres',msg:'Confirmed package swap at distribution hub. Rico Espinoza suspended.'},
+      {ts:'2024-01-18 10:28',actor:'Mike Torres',msg:'Compensation of $340 issued to customer. Case resolved.'},
+      {ts:'2024-01-18 10:30',actor:'SYSTEM',msg:'Case status updated to RESOLVED. Courier trust score updated: −15 points.'},
+    ]},
+  {id:'iq4',case_number:'PG-2024-000014',status:'open',severity:'medium',tracking:'PGY4N3W7',fraud_type:'weight_fraud',fraud_score:62.1,customer_name:'Aisha Mohammed',customer_email:'aisha.m@webmail.io',seller:'BargainBox Ltd',courier:'Lena Park',origin_city:'Miami, FL',destination_city:'Dallas, TX',created_at:'2024-01-16T09:44:00',resolved_at:null,assigned_to:null,auto_created:false,compensation_issued:false,
+    timeline:[
+      {ts:'2024-01-16 09:44',actor:'SYSTEM',msg:'Case manually opened by admin. Weight fraud suspected.'},
+      {ts:'2024-01-16 10:02',actor:'SYSTEM',msg:'Weight delta: 1.2kg — 57% of declared weight missing.'},
+    ]},
+  {id:'iq5',case_number:'PG-2024-000003',status:'dismissed',severity:'low',tracking:'PGH6P1Q2',fraud_type:'seller_fraud',fraud_score:55.8,customer_name:'Tom Bradley',customer_email:'tombradley@gmail.com',seller:'EverydayEssentials',courier:'Sandra Okonkwo',origin_city:'Seattle, WA',destination_city:'Portland, OR',created_at:'2024-01-15T18:12:00',resolved_at:'2024-01-16T14:00:00',assigned_to:'Sarah Chen',auto_created:true,compensation_issued:false,
+    timeline:[
+      {ts:'2024-01-15 18:12',actor:'SYSTEM',msg:'Case auto-opened. Score: 55.8 — MEDIUM threshold exceeded.'},
+      {ts:'2024-01-15 19:30',actor:'Sarah Chen',msg:'Review started. Image difference attributed to lighting variance, not substitution.'},
+      {ts:'2024-01-16 14:00',actor:'Sarah Chen',msg:'Dismissed — false positive. Image similarity low due to packaging reorientation.'},
+    ]},
+]
+
+let selectedId = 'iq1'
+
+function pill(label,color,bg){return`<span class="pill" style="background:${bg};color:${color};">${label}</span>`}
+function timeAgo(d){const diff=Date.now()-new Date(d).getTime(),h=Math.floor(diff/36e5),day=Math.floor(diff/864e5);return day>0?`${day}d ago`:h>0?`${h}h ago`:'just now'}
+
+function renderCounters(){
+  const open=CASES.filter(c=>c.status==='open').length
+  const rev=CASES.filter(c=>c.status==='under_review').length
+  const res=CASES.filter(c=>c.status==='resolved').length
+  const dis=CASES.filter(c=>c.status==='dismissed').length
+  document.getElementById('counters').innerHTML=
+    [['OPEN',open,'#ffb86c'],['REVIEWING',rev,'#8be9fd'],['RESOLVED',res,'#50fa7b'],['DISMISSED',dis,'#50505a']].map(([l,c,col])=>
+      `<div class="counter"><div class="cnt-val" style="color:${col}">${c}</div><div class="cnt-lbl">${l}</div></div>`
+    ).join('')
+}
+
+function renderList(){
+  const search=document.getElementById('searchInput').value.toLowerCase()
+  const sf=document.getElementById('statusFilter').value
+  const sevf=document.getElementById('sevFilter').value
+  const filtered=CASES.filter(c=>{
+    if(sf!=='all'&&c.status!==sf)return false
+    if(sevf!=='all'&&c.severity!==sevf)return false
+    if(search&&!c.case_number.toLowerCase().includes(search)&&!c.tracking.toLowerCase().includes(search)&&!c.customer_name.toLowerCase().includes(search))return false
+    return true
+  })
+  const html=filtered.length===0
+    ?'<div style="text-align:center;padding:2rem;color:var(--tx3);font-size:.65rem;">No cases match filter</div>'
+    :filtered.map(c=>{
+      const sm=STAT[c.status]||STAT.open, sv=SEV[c.severity]||SEV.medium
+      return`<div class="case-row ${c.id===selectedId?'active':''}" onclick="selectCase('${c.id}')">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.3rem;">
+          <div style="font-size:.66rem;color:var(--vio);font-weight:700;letter-spacing:.04em;">${c.case_number}</div>
+          <div style="display:flex;gap:.3rem;">${pill(sv.label,sv.color,sv.bg)}${pill(sm.label,sm.color,sm.bg)}</div>
+        </div>
+        <div style="font-size:.67rem;color:var(--tx);margin-bottom:.22rem;">${c.tracking} · ${FTYPES[c.fraud_type]||c.fraud_type}</div>
+        <div style="display:flex;justify-content:space-between;">
+          <div style="font-size:.58rem;color:var(--tx3);">${c.customer_name} · ${c.destination_city}</div>
+          <div style="font-size:.56rem;color:var(--tx3);">${timeAgo(c.created_at)}</div>
+        </div>
+        ${c.assigned_to?`<div style="font-size:.55rem;color:var(--teal);margin-top:.18rem;">👤 ${c.assigned_to}</div>`:''}
+      </div>`
+    }).join('')
+  document.getElementById('caseList').innerHTML=html
+}
+
+function selectCase(id){
+  selectedId=id
+  renderList()
+  renderDetail()
+}
+
+function renderDetail(){
+  const c=CASES.find(x=>x.id===selectedId)
+  if(!c){document.getElementById('detailPanel').innerHTML='<div class="empty"><div style="font-size:3rem;opacity:.25;">🔍</div><div style="font-family:var(--title);font-size:.95rem;letter-spacing:.06em;text-transform:uppercase;">Select a case</div></div>';return}
+  const sm=STAT[c.status]||STAT.open, sv=SEV[c.severity]||SEV.medium
+  const metaItems=[['Tracking',c.tracking],['Fraud Type',FTYPES[c.fraud_type]||c.fraud_type],['Fraud Score',c.fraud_score.toFixed(1)],['Customer',c.customer_name],['Seller',c.seller],['Courier',c.courier],['Origin',c.origin_city],['Destination',c.destination_city]]
+  const tlHtml=[...c.timeline].reverse().map((e,i,arr)=>{
+    const isSystem=e.actor==='SYSTEM',isLast=i===arr.length-1
+    return`<div class="timeline-entry">
+      ${!isLast?'<div class="tl-line"></div>':''}
+      <div class="tl-dot ${isSystem?'system':'human'}">${isSystem?'⚙':'👤'}</div>
+      <div style="flex:1;padding-top:.12rem;">
+        <div style="display:flex;gap:.55rem;align-items:baseline;margin-bottom:.18rem;">
+          <span style="font-size:.6rem;font-weight:700;color:${isSystem?'var(--tx3)':'var(--vio)'};">${e.actor}</span>
+          <span style="font-size:.54rem;color:var(--tx3);">${e.ts}</span>
+        </div>
+        <div style="font-size:.67rem;color:var(--tx2);line-height:1.5;">${e.msg}</div>
+      </div>
+    </div>`
+  }).join('')
+
+  document.getElementById('detailPanel').innerHTML=`
+    <div style="padding:.85rem 1.15rem;border-bottom:1px solid var(--bd);flex-shrink:0;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.45rem;">
+        <div>
+          <div style="font-size:.52rem;color:var(--tx3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.22rem;">Investigation Case</div>
+          <div style="font-family:var(--title);font-size:1.15rem;color:var(--tx);letter-spacing:.04em;">${c.case_number}</div>
+        </div>
+        <div style="display:flex;gap:.3rem;">${pill(sv.label,sv.color,sv.bg)}${pill(sm.label,sm.color,sm.bg)}</div>
+      </div>
+      <div style="display:flex;gap:.4rem;flex-wrap:wrap;">
+        ${c.auto_created?`<span style="font-size:.56rem;color:var(--slate);background:var(--slate-bg);border:1px solid rgba(139,233,253,.2);border-radius:4px;padding:.18rem .55rem;">🤖 AI auto-opened</span>`:''}
+        ${c.compensation_issued?`<span style="font-size:.56rem;color:var(--green);background:var(--green-bg);border:1px solid rgba(80,250,123,.2);border-radius:4px;padding:.18rem .55rem;">💰 Compensation issued</span>`:''}
+      </div>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:.95rem 1.15rem;">
+      <div class="meta-grid">${metaItems.map(([l,v])=>`<div class="meta-cell"><div class="meta-l">${l}</div><div class="meta-v">${v}</div></div>`).join('')}</div>
+      
+      <div class="update-box">
+        <div style="font-size:.52rem;color:var(--tx3);letter-spacing:.09em;text-transform:uppercase;margin-bottom:.6rem;">Update Case</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.55rem;margin-bottom:.55rem;">
+          <div><div class="update-label">Status</div>
+            <select class="u-select" id="statusSel">
+              <option value="open" ${c.status==='open'?'selected':''}>Open</option>
+              <option value="under_review" ${c.status==='under_review'?'selected':''}>Under Review</option>
+              <option value="escalated" ${c.status==='escalated'?'selected':''}>Escalated</option>
+              <option value="resolved" ${c.status==='resolved'?'selected':''}>Resolved</option>
+              <option value="dismissed" ${c.status==='dismissed'?'selected':''}>Dismissed</option>
+            </select>
+          </div>
+          <div><div class="update-label">Assign To</div>
+            <select class="u-select" id="assignSel">
+              <option value="" ${!c.assigned_to?'selected':''}>Unassigned</option>
+              <option value="Sarah Chen" ${c.assigned_to==='Sarah Chen'?'selected':''}>Sarah Chen</option>
+              <option value="Mike Torres" ${c.assigned_to==='Mike Torres'?'selected':''}>Mike Torres</option>
+              <option value="Priya Nair" ${c.assigned_to==='Priya Nair'?'selected':''}>Priya Nair</option>
+              <option value="Alex Kim" ${c.assigned_to==='Alex Kim'?'selected':''}>Alex Kim</option>
+            </select>
+          </div>
+        </div>
+        <div style="margin-bottom:.5rem;"><div class="update-label">Add Note</div><textarea class="u-textarea" placeholder="Add an investigation note…"></textarea></div>
+        <button class="save-btn" id="saveBtn" onclick="handleSave()">Save Update</button>
+      </div>
+
+      <div>
+        <div style="font-size:.52rem;color:var(--tx3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.7rem;">Case Timeline</div>
+        ${tlHtml}
+      </div>
+    </div>
+  `
+}
+
+function handleSave(){
+  const btn=document.getElementById('saveBtn')
+  btn.innerHTML='<span class="spin"></span> Saving…'
+  btn.disabled=true
+  setTimeout(()=>{
+    btn.innerHTML='✓ Saved'
+    btn.classList.add('saved')
+    btn.disabled=false
+    setTimeout(()=>{btn.innerHTML='Save Update';btn.classList.remove('saved')},2000)
+  },800)
+}
+
+// Init
+renderCounters()
+renderList()
+renderDetail()
+</script>
+</body>
+</html>

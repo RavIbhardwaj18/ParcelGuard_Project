@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ParcelGuard – Database Schema</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Syne:wght@700;800&display=swap');
+  :root {
+    --bg:#07080f; --s1:#0d1017; --s2:#111520; --bd:#1c2235;
+    --c1:#00d4ff; --c2:#39ff14; --c3:#f5a623; --c4:#ff4d6d; --c5:#b97fff;
+    --tx:#ccd6f6; --mu:#3d5070;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--tx);font-family:'JetBrains Mono',monospace;min-height:100vh;overflow-x:auto;}
+  body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 50% 30% at 20% 10%,rgba(0,212,255,.04),transparent 60%),radial-gradient(ellipse 40% 40% at 80% 80%,rgba(57,255,20,.03),transparent 60%);pointer-events:none;}
+  header{padding:1.8rem 2.5rem 1.2rem;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:1rem;position:relative;z-index:10;}
+  .logo{font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;}.logo span{color:var(--c1);}
+  .badge{margin-left:auto;background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.25);color:var(--c1);font-size:.6rem;padding:.3rem .8rem;border-radius:4px;letter-spacing:.1em;text-transform:uppercase;}
+  .canvas{padding:2rem 2.5rem;display:flex;flex-wrap:wrap;gap:1.5rem;position:relative;z-index:10;max-width:1500px;margin:0 auto;}
+
+  /* Table card */
+  .tbl{background:var(--s1);border:1px solid var(--bd);border-radius:12px;min-width:240px;overflow:hidden;flex-shrink:0;}
+  .tbl-head{padding:.7rem 1rem;display:flex;align-items:center;gap:.5rem;border-bottom:1px solid var(--bd);}
+  .tbl-head .icon{font-size:1rem;}
+  .tbl-head .name{font-family:'Syne',sans-serif;font-size:.8rem;font-weight:700;}
+  .tbl-head .tag{margin-left:auto;font-size:.5rem;letter-spacing:.06em;text-transform:uppercase;padding:.15rem .45rem;border-radius:3px;}
+  .tbl-rows{padding:.5rem 0;}
+  .row{display:flex;align-items:center;gap:.6rem;padding:.28rem 1rem;font-size:.62rem;line-height:1.5;transition:background .15s;}
+  .row:hover{background:var(--s2);}
+  .row .col-name{flex:1;color:var(--tx);}
+  .row .col-type{color:var(--mu);font-size:.56rem;flex-shrink:0;}
+  .pk{color:var(--c3)!important;font-weight:600;}
+  .fk{color:var(--c5)!important;}
+  .idx{color:var(--c2)!important;}
+  .divider{height:1px;background:var(--bd);margin:.3rem 0;}
+  .row .pill{font-size:.45rem;padding:.1rem .35rem;border-radius:2px;flex-shrink:0;}
+
+  /* colour themes */
+  .blue .tbl-head{border-top:2px solid var(--c1);}
+  .blue .tbl-head .tag{background:rgba(0,212,255,.1);color:var(--c1);border:1px solid rgba(0,212,255,.25);}
+  .green .tbl-head{border-top:2px solid var(--c2);}
+  .green .tbl-head .tag{background:rgba(57,255,20,.1);color:var(--c2);border:1px solid rgba(57,255,20,.25);}
+  .gold .tbl-head{border-top:2px solid var(--c3);}
+  .gold .tbl-head .tag{background:rgba(245,166,35,.1);color:var(--c3);border:1px solid rgba(245,166,35,.25);}
+  .red .tbl-head{border-top:2px solid var(--c4);}
+  .red .tbl-head .tag{background:rgba(255,77,109,.1);color:var(--c4);border:1px solid rgba(255,77,109,.25);}
+  .purple .tbl-head{border-top:2px solid var(--c5);}
+  .purple .tbl-head .tag{background:rgba(185,127,255,.1);color:var(--c5);border:1px solid rgba(185,127,255,.25);}
+
+  /* Relationships legend */
+  .rel-box{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:1.2rem;flex:1;min-width:320px;}
+  .rel-box h3{font-family:'Syne',sans-serif;font-size:.8rem;font-weight:700;margin-bottom:.9rem;color:var(--c1);}
+  .rel-item{display:flex;align-items:center;gap:.7rem;margin-bottom:.6rem;font-size:.63rem;color:#8a9abf;}
+  .rel-from{color:var(--c3);font-weight:600;min-width:80px;}
+  .rel-arrow{color:var(--mu);}
+  .rel-to{color:var(--c5);font-weight:600;min-width:80px;}
+  .rel-type{font-size:.5rem;padding:.15rem .45rem;border-radius:3px;background:rgba(255,255,255,.04);border:1px solid var(--bd);color:var(--mu);}
+
+  /* Enum legend */
+  .enum-box{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:1.2rem;min-width:300px;}
+  .enum-box h3{font-family:'Syne',sans-serif;font-size:.8rem;font-weight:700;margin-bottom:.9rem;color:var(--c4);}
+  .enum-group{margin-bottom:.9rem;}
+  .enum-name{font-size:.6rem;color:var(--c3);margin-bottom:.35rem;font-weight:600;}
+  .enum-vals{display:flex;flex-wrap:wrap;gap:.3rem;}
+  .ev{font-size:.52rem;padding:.15rem .4rem;border-radius:3px;background:rgba(255,255,255,.03);border:1px solid var(--bd);color:#7a8fbf;}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="logo">Parcel<span>Guard</span></div>
+    <p style="font-size:.62rem;color:var(--mu);margin-top:.15rem;">Step 03 / 14 · Database Schema · PostgreSQL</p>
+  </div>
+  <div class="badge">7 Tables · 5 Enums · 12 FK Relations</div>
+</header>
+
+<div class="canvas">
+
+  <!-- sellers -->
+  <div class="tbl blue" style="width:260px;">
+    <div class="tbl-head"><span class="icon">🏪</span><span class="name">sellers</span><span class="tag">Actor</span></div>
+    <div class="tbl-rows">
+      <div class="row"><span class="col-name pk">🔑 id</span><span class="col-type">UUID PK</span></div>
+      <div class="row"><span class="col-name idx">name</span><span class="col-type">VARCHAR(255)</span></div>
+      <div class="row"><span class="col-name">email</span><span class="col-type">VARCHAR UNIQUE</span></div>
+      <div class="row"><span class="col-name">company</span><span class="col-type">VARCHAR(255)</span></div>
+      <div class="row"><span class="col-name">city / country</span><span class="col-type">VARCHAR</span></div>
+      <div class="divider"></div>
+      <div class="row"><span class="col-name" style="color:#f5a623;">trust_score</span><span class="col-type">FLOAT</span></div>
+      <div class="row"><span class="col-name">is_flagged</span><span class="col-type">BOOLEAN</span></div>
+      <div class="row"><span class="col-name">is_suspended</span><span class="col-type">BOOLEAN</span></div>
+      <div class="divider"></div>
+      <div class="row"><span class="col-name">total_parcels</span><span class="col-type">FLOAT</span></div>
+      <div class="row"><span class="col-name">fraud_count</span><span class="col-type">FLOAT</span></div>
+      <div class="row"><span class="col-name">created_at</span><span class="col-type">TIMESTAMP</span></div>
+    </div>
+  </div>
+
+  <!-- couriers -->
+  <div class="tbl blue" style="width:265px;">
+    <div class="tbl-head"><span class="icon">🚚</span><span class="name">couriers</span><span class="tag">Actor</span></div>
+    <div class="tbl-rows">
+      <div class="row"><span class="col-name pk">🔑 id</span><span class="col-type">UUID PK</span></div>
+      <div class="row"><span class="col-name idx">name</span><span class="col-type">VARCHAR(255)</span></div>
+      <div class="row"><span class="col-name">email</span><span class="col-type">VARCHAR UNIQUE</span></div>
+      <div class="row"><span class="col-name">employee_id</span><span class="col-type">VARCHAR UNIQUE</span></div>
+      <div class="row"><span class="col-name">company</span><span class="col-type">VARCHAR(255)</span></div>
+      <div class="row"><span class="col-name">base_city / country</span><span class="col-type">VARCHAR</span></div>
+      <div class="divider"></div>
+      <div class="row"><span class="col-name" style="color:#f5a623;">trust_score</span><span class="col-type">FLOAT</span></div>
+      <div class="row"><span class="col-name">is_flagged</span><span class="col-type">BOOLEAN</span></div>
+      <div class="row"><span class="col-name">is_suspended</span><span class="col-type">BOOLEAN</span></div>
+      <div class="divider"></div>
+      <div class="row"><span class="col-name">total_deliveries</span><span class="col-type">FLOAT</span></div>
+      <div class="row"><span class="col-name">fraud_count</span><span class="col-type">FLOAT</span></div>
+      <div class="row"><span class="col-name">created_at</span><span class="col-type">TIMESTAMP</span></div>
+    </div>
+  </div>
+
+  <!-- parcels (CENTRAL) -->
+  <div class="tbl gold" style="width:310px;">
+    <div class="tbl-head"><span class="icon">📦</span><span class="name">parcels</span><span class="tag">★ Central</span></div>
+    <div class="tbl-rows">
+      <div class="row"><span class="col-name pk">🔑 id</span><span class="col-type">UUID PK</span></div>
+      <div class="row"><span class="col-name idx">🔎 tracking_number</span><span class="col-type">VARCHAR UNIQUE IDX</span></div>
+      <div class="row"><span class="col-name fk">🔗 seller_id</span><span class="col-type">UUID → sellers</span></div>
+      <div class="divider"></div>
+      <div class="row"><span class="col-name">declared_weight_kg</span><span class="col-type">FLOAT NOT NULL</span></div>
+      <div class="row"><span class="col-name">declared_length/w/h_cm</span><span class="col-type">FLOAT × 3</span></div>
+      <div class="row"><span class="col-name">declared_value_usd</span><span class="col-type">FLOAT</span></div>
+      <div class="row"><span class="col-name">item_description</span><span class="col-type">TEXT</span></div>
+      <div class="row"><span class="col-name idx">🔎 rfid_tag</span><span class="col-type">VARCHAR IDX</span></div>
+      <div class="divider"></div>
+      <div class="row"><span class="col-name" style="color:#b97fff;">xray_image_path</span><span class="col-type">VARCHAR(500)</span></div>
+      <div class="row"><span class="col-name" style="color:#b97fff;">packing_image_path</span><span class="col-type">VARCHAR(500)</span></div>
+      <div class="row"><span class="col-name" style="color:#b97fff;">packing_image_embedding</span><span class="col-type">TEXT (JSON)</span></div>
+      <div class="divider"></div>
+      <div class="row"><span class="col-name">origin_city/lat/lng</span><span class="col-type">VARCHAR + FLOAT × 2</span></div>
+      <div class="row"><span class="col-name">dest_city/lat/lng</span><span class="col-type">VARCHAR + FLOAT × 2</span></div>
+      <div class="divider"></div>
+      <div class="row"><span class="col-name" style="color:#00d4ff;">status</span><span class="col-type">ENUM ParcelStatus</span></div>
+      <div class="row"><span class="col-name" style="color:#ff4d6d;">fraud_risk</span><span class="col-type">ENUM FraudRisk</span></div>
+      <div class="row"><span class="col-name" style="color:#ff4d6d;">fraud_score</span><span class="col-type">FLOAT 0–100</span></div>
+      <div class="divider"></div>
+      <div class="row"><span class="col-name">customer_name / email</span><span class="col-type">VARCHAR</span></div>
+      <div class="row"><span class="col-name" style="color:#b97fff;">customer_image_path</span><span class="col-type">VARCHAR(500)</span></div>
+      <div class="row"><span class="col-name" style="color:#b97fff;">customer_image_embedding</span><span class="col-type">TEXT (JSON)</span></div>
+      <div class="row"><span class="col-name">customer_verified_at</span><span class="col-type">TIMESTAMP</span></div>
+      <div class="divider"></div>
+      <div class="row"><span class="col-name">packed_at / delivered_at</span><span class="col-type">TIMESTAMP × 2</span></div>
+    </div>
+  </div>
+
+  <!-- delivery_checkpoints -->
+  <div class="tbl green" style="width:275px;">
+    <div class="tbl-head"><span class="icon">📍</span><span class="name">delivery_checkpoints</span><span class="tag">Audit Trail</span></div>
+    <div class="tbl-rows">
+      <div class="row"><span class="col-name pk">🔑 id</span><span class="col-type">UUID PK</span></div>
+      <div class="row"><span class="col-name fk idx">🔗 parcel_id</span><span class="col-type">UUID → parcels IDX</span></div>
+      <div class="row"><span class="col-name fk">🔗 courier_id</span><span class="col-type">UUID → couriers</span></div>
+      <div class="divider"></div>
+      <div class="row"><span class="col-name">checkpoint_type</span><span class="col-type">VARCHAR(50)</span></div>
+      <div class="row"><span class="col-name">location_name</span><span class="col-type">VARCHAR(255)</span></div>
+      <div class="row"><span class="col-name">city / country</span><span class="col-type">VARCHAR</span></div>
+      <div class="row"><span class="col-name">latitude / longitude</span><span class="col-type">FLOAT × 2</span></div>
+      <div class="divider"></div>
+      <div class="row"><span class="col-name" style="color:#f5a623;">scanned_weight_kg</span><span class="col-type">FLOAT</span></div>
+      <div class="row"><span class="col-name" style="color:#f5a623;">scanned_rfid</span><span class="col-type">VARCHAR(100)</span></div>
+      <div class="row"><span class="col-name" style="color:#b97fff;">checkpoint_image_path</span><span class="col-type">VARCHAR(500)</span></div>
+      <div class="row"><span class="col-name" style="color:#b97fff;">checkpoint_image_embedding</span><span class="col-type">TEXT (JSON)</span></div>
+      <div class="divider"></div>
+      <div class="row"><span class="col-name">notes</span><span class="col-type">TEXT</span></div>
+      <div class="row"><span class="col-name">scanned_at</span><span class="col-type">TIMESTAMP</span></div>
+    </div>
+  </div>
+
+  <!-- fraud_events -->
+  <div class="tbl red" style="width:285px;">
+    <div class="tbl-head"><span class="icon">🚨</span><span class="name">fraud_events</span><span class="tag">AI Output</span></div>
+    <div class="tbl-rows">
+      <div class="row"><span class="col-name pk">🔑 id</span><span class="col-type">UUID PK</span></div>
+      <div class="row"><span class="col-name fk idx">🔗 parcel_id</span><span class="col-type">UUID → parcels IDX</span></div>
+      <div class="row"><span class="col-name fk">🔗 seller_id</span><span class="col-type">UUID → sellers</span></div>
+      <div class="row"><span class="col-name fk">🔗 courier_id</span><span class="col-type">UUID → couriers</span></div>
+      <div class="divider"></div>
+      <div class="row"><span class="col-name" style="color:#ff4d6d;">fraud_type</span><span class="col-type">ENUM FraudType</span></div>
+      <div class="row"><span class="col-name" style="color:#ff4d6d;">status</span><span class="col-type">ENUM FraudStatus</span></div>
+      <div class="row"><span class="col-name" style="color:#f5a623;">total_fraud_score</span><span class="col-type">FLOAT 0–100</span></div>
+      <div class="divider"></div>
+      <div class="row"><span class="col-name">image_similarity_score</span><span class="col-type">FLOAT 0–1</span></div>
+      <div class="row"><span class="col-name">image_delta_score</span><span class="col-type">FLOAT</span></div>
+      <div class="row"><span class="col-name">weight_delta_kg</span><span class="col-type">FLOAT</span></div>
+      <div class="row"><span class="col-name">weight_delta_score</span><span class="col-type">FLOAT</span></div>
+      <div class="row"><span class="col-name">rfid_matched</span><span class="col-type">BOOLEAN</span></div>
+      <div class="row"><span class="col-name">rfid_score</span><span class="col-type">FLOAT</span></div>
+      <div class="row"><span class="col-name">dim_delta_score</span><span class="col-type">FLOAT</span></div>
+      <div class="divider"></div>
+      <div class="row"><span class="col-name" style="color:#b97fff;">evidence_data</span><span class="col-type">JSON</span></div>
+      <div class="row"><span class="col-name">fraud_location_lat/lng</span><span class="col-type">FLOAT × 2</span></div>
+      <div class="row"><span class="col-name">detected_at</span><span class="col-type">TIMESTAMP</span></div>
+    </div>
+  </div>
+
+  <!-- trust_events -->
+  <div class="tbl purple" style="width:265px;">
+    <div class="tbl-head"><span class="icon">⭐</span><span class="name">trust_events</span><span class="tag">Score Ledger</span></div>
+    <div class="tbl-rows">
+      <div class="row"><span class="col-name pk">🔑 id</span><span class="col-type">UUID PK</span></div>
+      <div class="row"><span class="col-name fk idx">🔗 seller_id</span><span class="col-type">UUID → sellers IDX</span></div>
+      <div class="row"><span class="col-name fk idx">🔗 courier_id</span><span class="col-type">UUID → couriers IDX</span></div>
+      <div class="divider"></div>
+      <div class="row"><span class="col-name" style="color:#b97fff;">event_type</span><span class="col-type">ENUM TrustEventType</span></div>
+      <div class="row"><span class="col-name" style="color:#39ff14;">score_before</span><span class="col-type">FLOAT</span></div>
+      <div class="row"><span class="col-name" style="color:#f5a623;">score_change</span><span class="col-type">FLOAT (+ or -)</span></div>
+      <div class="row"><span class="col-name" style="color:#39ff14;">score_after</span><span class="col-type">FLOAT</span></div>
+      <div class="divider"></div>
+      <div class="row"><span class="col-name fk">🔗 parcel_id</span><span class="col-type">UUID → parcels</span></div>
+      <div class="row"><span class="col-name fk">🔗 fraud_event_id</span><span class="col-type">UUID → fraud_events</span></div>
+      <div class="row"><span class="col-name">reason</span><span class="col-type">TEXT</span></div>
+      <div class="row"><span class="col-name">created_by</span><span class="col-type">VARCHAR (system/email)</span></div>
+      <div class="row"><span class="col-name">created_at</span><span class="col-type">TIMESTAMP</span></div>
+    </div>
+  </div>
+
+  <!-- inquiries -->
+  <div class="tbl red" style="width:275px;">
+    <div class="tbl-head"><span class="icon">🔍</span><span class="name">inquiries</span><span class="tag">Case Mgmt</span></div>
+    <div class="tbl-rows">
+      <div class="row"><span class="col-name pk">🔑 id</span><span class="col-type">UUID PK</span></div>
+      <div class="row"><span class="col-name idx">🔎 case_number</span><span class="col-type">VARCHAR UNIQUE IDX</span></div>
+      <div class="row"><span class="col-name fk">🔗 parcel_id</span><span class="col-type">UUID → parcels</span></div>
+      <div class="row"><span class="col-name fk">🔗 fraud_event_id</span><span class="col-type">UUID → fraud_events</span></div>
+      <div class="row"><span class="col-name fk">🔗 accused_seller_id</span><span class="col-type">UUID → sellers</span></div>
+      <div class="row"><span class="col-name fk">🔗 accused_courier_id</span><span class="col-type">UUID → couriers</span></div>
+      <div class="divider"></div>
+      <div class="row"><span class="col-name" style="color:#00d4ff;">status</span><span class="col-type">ENUM InquiryStatus</span></div>
+      <div class="row"><span class="col-name" style="color:#ff4d6d;">severity</span><span class="col-type">ENUM InquirySeverity</span></div>
+      <div class="row"><span class="col-name">title / description</span><span class="col-type">VARCHAR / TEXT</span></div>
+      <div class="divider"></div>
+      <div class="row"><span class="col-name">assigned_to</span><span class="col-type">VARCHAR</span></div>
+      <div class="row"><span class="col-name">resolution_notes</span><span class="col-type">TEXT</span></div>
+      <div class="row"><span class="col-name" style="color:#b97fff;">timeline</span><span class="col-type">JSON []</span></div>
+      <div class="row"><span class="col-name">compensation_amount_usd</span><span class="col-type">FLOAT</span></div>
+      <div class="row"><span class="col-name">auto_created</span><span class="col-type">FLOAT (0/1)</span></div>
+      <div class="row"><span class="col-name">created_at</span><span class="col-type">TIMESTAMP</span></div>
+    </div>
+  </div>
+
+  <!-- Relationships -->
+  <div class="rel-box">
+    <h3>🔗 Foreign Key Relationships</h3>
+    <div class="rel-item"><span class="rel-from">parcels</span><span class="rel-arrow">──→</span><span class="rel-to">sellers</span><span class="rel-type">many → one</span></div>
+    <div class="rel-item"><span class="rel-from">checkpoints</span><span class="rel-arrow">──→</span><span class="rel-to">parcels</span><span class="rel-type">many → one</span></div>
+    <div class="rel-item"><span class="rel-from">checkpoints</span><span class="rel-arrow">──→</span><span class="rel-to">couriers</span><span class="rel-type">many → one</span></div>
+    <div class="rel-item"><span class="rel-from">fraud_events</span><span class="rel-arrow">──→</span><span class="rel-to">parcels</span><span class="rel-type">many → one</span></div>
+    <div class="rel-item"><span class="rel-from">fraud_events</span><span class="rel-arrow">──→</span><span class="rel-to">sellers</span><span class="rel-type">many → one</span></div>
+    <div class="rel-item"><span class="rel-from">fraud_events</span><span class="rel-arrow">──→</span><span class="rel-to">couriers</span><span class="rel-type">many → one</span></div>
+    <div class="rel-item"><span class="rel-from">trust_events</span><span class="rel-arrow">──→</span><span class="rel-to">sellers</span><span class="rel-type">many → one</span></div>
+    <div class="rel-item"><span class="rel-from">trust_events</span><span class="rel-arrow">──→</span><span class="rel-to">couriers</span><span class="rel-type">many → one</span></div>
+    <div class="rel-item"><span class="rel-from">trust_events</span><span class="rel-arrow">──→</span><span class="rel-to">fraud_events</span><span class="rel-type">many → one</span></div>
+    <div class="rel-item"><span class="rel-from">inquiries</span><span class="rel-arrow">──→</span><span class="rel-to">parcels</span><span class="rel-type">one → one</span></div>
+    <div class="rel-item"><span class="rel-from">inquiries</span><span class="rel-arrow">──→</span><span class="rel-to">fraud_events</span><span class="rel-type">one → one</span></div>
+    <div class="rel-item"><span class="rel-from">inquiries</span><span class="rel-arrow">──→</span><span class="rel-to">sellers/couriers</span><span class="rel-type">many → one × 2</span></div>
+  </div>
+
+  <!-- Enums -->
+  <div class="enum-box">
+    <h3>🏷 Enum Values</h3>
+    <div class="enum-group">
+      <div class="enum-name">ParcelStatus</div>
+      <div class="enum-vals">
+        <span class="ev">packed</span><span class="ev">picked_up</span><span class="ev">in_transit</span>
+        <span class="ev">out_for_delivery</span><span class="ev">delivered</span>
+        <span class="ev" style="color:#ff4d6d;">disputed</span><span class="ev" style="color:#ff4d6d;">investigation</span>
+      </div>
+    </div>
+    <div class="enum-group">
+      <div class="enum-name">FraudRisk</div>
+      <div class="enum-vals">
+        <span class="ev">unknown</span>
+        <span class="ev" style="color:#39ff14;">low</span>
+        <span class="ev" style="color:#f5a623;">medium</span>
+        <span class="ev" style="color:#ff4d6d;">high</span>
+      </div>
+    </div>
+    <div class="enum-group">
+      <div class="enum-name">FraudType</div>
+      <div class="enum-vals">
+        <span class="ev">seller_fraud</span><span class="ev">courier_fraud</span>
+        <span class="ev">rfid_mismatch</span><span class="ev">weight_fraud</span>
+        <span class="ev">dimension_fraud</span><span class="ev">multi_signal</span>
+        <span class="ev">false_positive</span>
+      </div>
+    </div>
+    <div class="enum-group">
+      <div class="enum-name">InquiryStatus</div>
+      <div class="enum-vals">
+        <span class="ev">open</span><span class="ev">assigned</span>
+        <span class="ev">evidence_gathering</span><span class="ev">pending_response</span>
+        <span class="ev">under_review</span><span class="ev">escalated</span>
+        <span class="ev" style="color:#ff4d6d;">resolved_fraud</span>
+        <span class="ev" style="color:#39ff14;">resolved_cleared</span>
+        <span class="ev">closed</span>
+      </div>
+    </div>
+    <div class="enum-group">
+      <div class="enum-name">TrustEventType</div>
+      <div class="enum-vals">
+        <span class="ev" style="color:#ff4d6d;">fraud_confirmed -15</span>
+        <span class="ev" style="color:#f5a623;">fraud_suspected -5</span>
+        <span class="ev" style="color:#39ff14;">clean_delivery +1.5</span>
+        <span class="ev" style="color:#39ff14;">fraud_dismissed +5</span>
+        <span class="ev">manual_adjustment</span>
+        <span class="ev">account_created</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

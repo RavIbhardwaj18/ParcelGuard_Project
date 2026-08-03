@@ -1,0 +1,126 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+
+    // ── Backend ─────────────────────────────────────────────────────────────
+    {
+      "label": "🐍 Backend: Setup venv",
+      "type": "shell",
+      "command": "python3 -m venv venv && source venv/bin/activate && pip install -r requirements.txt",
+      "options": { "cwd": "${workspaceFolder:⚡ Backend (FastAPI)}" },
+      "group": "build",
+      "presentation": { "reveal": "always", "panel": "dedicated", "group": "setup" }
+    },
+    {
+      "label": "🗄️ Backend: Run migrations",
+      "type": "shell",
+      "command": "source venv/bin/activate && alembic upgrade head",
+      "options": { "cwd": "${workspaceFolder:⚡ Backend (FastAPI)}" },
+      "group": "build",
+      "presentation": { "reveal": "always", "panel": "dedicated", "group": "setup" }
+    },
+    {
+      "label": "🌱 Backend: Seed demo data",
+      "type": "shell",
+      "command": "source venv/bin/activate && python -m seed.seed_data",
+      "options": { "cwd": "${workspaceFolder:⚡ Backend (FastAPI)}" },
+      "group": "build",
+      "presentation": { "reveal": "always", "panel": "dedicated", "group": "setup" }
+    },
+    {
+      "label": "⚡ Backend: Start API server",
+      "type": "shell",
+      "command": "source venv/bin/activate && uvicorn app.main:app --reload --port 8000",
+      "options": { "cwd": "${workspaceFolder:⚡ Backend (FastAPI)}" },
+      "group": { "kind": "build", "isDefault": false },
+      "isBackground": true,
+      "problemMatcher": {
+        "pattern": { "regexp": ".", "file": 1, "location": 2, "message": 3 },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "INFO.*Uvicorn running",
+          "endsPattern": "INFO.*Application startup complete"
+        }
+      },
+      "presentation": { "reveal": "always", "panel": "dedicated", "group": "servers" }
+    },
+
+    // ── Frontend ─────────────────────────────────────────────────────────────
+    {
+      "label": "📦 Frontend: npm install",
+      "type": "shell",
+      "command": "npm install",
+      "options": { "cwd": "${workspaceFolder:🖥️ Frontend (Ops :3000)}" },
+      "group": "build",
+      "presentation": { "reveal": "always", "panel": "dedicated", "group": "setup" }
+    },
+    {
+      "label": "🖥️ Frontend: Start dev server",
+      "type": "shell",
+      "command": "npm run dev",
+      "options": { "cwd": "${workspaceFolder:🖥️ Frontend (Ops :3000)}" },
+      "isBackground": true,
+      "problemMatcher": {
+        "pattern": { "regexp": ".", "file": 1, "location": 2, "message": 3 },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "VITE",
+          "endsPattern": "ready in"
+        }
+      },
+      "presentation": { "reveal": "always", "panel": "dedicated", "group": "servers" }
+    },
+
+    // ── Customer Portal ───────────────────────────────────────────────────────
+    {
+      "label": "📦 Customer Portal: npm install",
+      "type": "shell",
+      "command": "npm install",
+      "options": { "cwd": "${workspaceFolder:👤 Customer Portal (:3001)}" },
+      "group": "build",
+      "presentation": { "reveal": "always", "panel": "dedicated", "group": "setup" }
+    },
+    {
+      "label": "👤 Customer Portal: Start dev server",
+      "type": "shell",
+      "command": "npm run dev",
+      "options": { "cwd": "${workspaceFolder:👤 Customer Portal (:3001)}" },
+      "isBackground": true,
+      "problemMatcher": {
+        "pattern": { "regexp": ".", "file": 1, "location": 2, "message": 3 },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "VITE",
+          "endsPattern": "ready in"
+        }
+      },
+      "presentation": { "reveal": "always", "panel": "dedicated", "group": "servers" }
+    },
+
+    // ── Compound: Start everything ────────────────────────────────────────────
+    {
+      "label": "🚀 Start ALL servers",
+      "dependsOn": [
+        "⚡ Backend: Start API server",
+        "🖥️ Frontend: Start dev server",
+        "👤 Customer Portal: Start dev server"
+      ],
+      "dependsOrder": "parallel",
+      "group": { "kind": "build", "isDefault": true },
+      "presentation": { "reveal": "always", "panel": "shared" }
+    },
+
+    // ── First-time setup ──────────────────────────────────────────────────────
+    {
+      "label": "🔧 First-time setup (install all deps)",
+      "dependsOn": [
+        "🐍 Backend: Setup venv",
+        "📦 Frontend: npm install",
+        "📦 Customer Portal: npm install"
+      ],
+      "dependsOrder": "sequence",
+      "group": "build",
+      "presentation": { "reveal": "always", "panel": "shared" }
+    }
+  ]
+}

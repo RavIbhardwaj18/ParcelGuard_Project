@@ -1,0 +1,35 @@
+{
+  "recommendations": [
+    // ── Python ─────────────────────────────────────────────────────────────
+    "ms-python.python",
+    "ms-python.vscode-pylance",
+    "ms-python.black-formatter",
+    "charliermarsh.ruff",
+    "ms-python.debugpy",
+
+    // ── React / JS ─────────────────────────────────────────────────────────
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+    "dsznajder.es7-react-js-snippets",
+    "bradlc.vscode-tailwindcss",
+    "formulahendry.auto-rename-tag",
+    "christian-kohler.path-intellisense",
+    "steoates.autoimport",
+
+    // ── API / REST ──────────────────────────────────────────────────────────
+    "42crunch.vscode-openapi",
+    "humao.rest-client",
+
+    // ── Database ───────────────────────────────────────────────────────────
+    "mtxr.sqltools",
+    "mtxr.sqltools-driver-pg",
+
+    // ── DX / Quality of life ────────────────────────────────────────────────
+    "PKief.material-icon-theme",
+    "eamodio.gitlens",
+    "usernamehw.errorlens",
+    "streetsidesoftware.code-spell-checker",
+    "wayou.vscode-todo-highlight",
+    "mikestead.dotenv"
+  ]
+}

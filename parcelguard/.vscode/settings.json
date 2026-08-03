@@ -1,0 +1,74 @@
+{
+  // ── Editor ───────────────────────────────────────────────────────────────
+  "editor.formatOnSave": true,
+  "editor.tabSize": 2,
+  "editor.rulers": [100],
+  "editor.bracketPairColorization.enabled": true,
+  "editor.guides.bracketPairs": "active",
+  "editor.inlineSuggest.enabled": true,
+  "editor.wordWrap": "off",
+
+  // ── Language overrides ────────────────────────────────────────────────────
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.black-formatter",
+    "editor.tabSize": 4,
+    "editor.formatOnSave": true
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+
+  // ── Python ────────────────────────────────────────────────────────────────
+  "python.languageServer": "Pylance",
+  "python.analysis.typeCheckingMode": "basic",
+  "python.analysis.autoImportCompletions": true,
+  "python.defaultInterpreterPath": "./backend/venv/bin/python",
+
+  // ── ESLint / Prettier ─────────────────────────────────────────────────────
+  "eslint.workingDirectories": ["./frontend", "./customer-portal"],
+  "prettier.singleQuote": true,
+  "prettier.semi": false,
+  "prettier.trailingComma": "es5",
+  "prettier.printWidth": 100,
+
+  // ── Emmet ─────────────────────────────────────────────────────────────────
+  "emmet.includeLanguages": {
+    "javascript": "javascriptreact"
+  },
+
+  // ── File nesting ──────────────────────────────────────────────────────────
+  "explorer.fileNesting.enabled": true,
+  "explorer.fileNesting.patterns": {
+    "*.jsx": "${capture}.css, ${capture}.test.jsx",
+    "package.json": "package-lock.json, .npmrc, .nvmrc, .prettierrc, .eslintrc*",
+    "vite.config.*": ".env, .env.local, .env.development",
+    "alembic.ini": "alembic/"
+  },
+
+  // ── Files ─────────────────────────────────────────────────────────────────
+  "files.exclude": {
+    "**/__pycache__": true,
+    "**/.pytest_cache": true,
+    "**/node_modules": true,
+    "**/.venv": true,
+    "**/dist": true,
+    "**/.DS_Store": true
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/venv": true,
+    "**/dist": true,
+    "**/__pycache__": true
+  },
+
+  // ── Terminal ──────────────────────────────────────────────────────────────
+  "terminal.integrated.defaultProfile.linux": "bash",
+  "terminal.integrated.defaultProfile.osx": "zsh",
+  "terminal.integrated.fontSize": 13
+}

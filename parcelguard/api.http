@@ -1,0 +1,218 @@
+### ParcelGuard API — VS Code REST Client
+### Install: humao.rest-client extension
+### Usage: Click "Send Request" above any block
+
+@base = http://localhost:8000
+
+# ─────────────────────────────────────────────────────────────
+# PARCELS
+# ─────────────────────────────────────────────────────────────
+
+### List all parcels
+GET {{base}}/api/parcels?limit=10&offset=0
+
+###
+
+### Track by tracking number
+GET {{base}}/api/parcels/track/PGX4K9B2
+
+###
+
+### Get parcel checkpoints
+GET {{base}}/api/parcels/{{parcel_id}}/checkpoints
+
+###
+
+### Create parcel (JSON — for testing without images)
+POST {{base}}/api/parcels
+Content-Type: application/json
+
+{
+  "seller_id": "{{seller_id}}",
+  "customer_name": "Test Customer",
+  "customer_email": "test@example.com",
+  "weight_kg": 1.5,
+  "length_cm": 30,
+  "width_cm": 20,
+  "height_cm": 15,
+  "declared_value": 299.99,
+  "item_description": "Electronics — Test Item",
+  "origin_city": "New York, NY",
+  "origin_lat": 40.71,
+  "origin_lng": -74.01,
+  "destination_city": "Los Angeles, CA",
+  "destination_lat": 34.05,
+  "destination_lng": -118.24
+}
+
+# ─────────────────────────────────────────────────────────────
+# FRAUD DETECTION
+# ─────────────────────────────────────────────────────────────
+
+### Trigger AI fraud analysis on a parcel
+POST {{base}}/api/fraud/analyze/{{parcel_id}}
+
+###
+
+### List fraud events
+GET {{base}}/api/fraud/events?limit=10
+
+###
+
+### List fraud events — HIGH risk only
+GET {{base}}/api/fraud/events?status=detected&min_score=70
+
+###
+
+### Fraud summary (KPIs)
+GET {{base}}/api/fraud/summary
+
+###
+
+### Update fraud event status
+PUT {{base}}/api/fraud/events/{{event_id}}/status
+Content-Type: application/json
+
+{
+  "status": "under_review",
+  "notes": "Assigned to investigation team. Courier footage being reviewed."
+}
+
+# ─────────────────────────────────────────────────────────────
+# VERIFICATION / CHECKPOINTS
+# ─────────────────────────────────────────────────────────────
+
+### List sellers (for dropdown)
+GET {{base}}/api/verification/sellers
+
+###
+
+### List couriers (for dropdown)
+GET {{base}}/api/verification/couriers
+
+###
+
+### Get courier recent scans
+GET {{base}}/api/verification/couriers/{{courier_id}}/recent
+
+###
+
+### Submit checkpoint (JSON — without photo)
+POST {{base}}/api/verification/checkpoint
+Content-Type: application/json
+
+{
+  "parcel_id": "{{parcel_id}}",
+  "courier_id": "{{courier_id}}",
+  "checkpoint_type": "HUB_SCAN",
+  "location_name": "Newark Distribution Center",
+  "city": "Newark, NJ",
+  "lat": 40.74,
+  "lng": -74.17,
+  "scanned_weight": 1.48,
+  "scanned_rfid": "RFID-TEST123456",
+  "notes": "Package arrived in good condition"
+}
+
+# ─────────────────────────────────────────────────────────────
+# INQUIRIES
+# ─────────────────────────────────────────────────────────────
+
+### List all cases
+GET {{base}}/api/inquiry?limit=20
+
+###
+
+### List open cases only
+GET {{base}}/api/inquiry?status=open
+
+###
+
+### List critical cases
+GET {{base}}/api/inquiry?severity=critical
+
+###
+
+### Get case details
+GET {{base}}/api/inquiry/{{inquiry_id}}
+
+###
+
+### Update case
+PUT {{base}}/api/inquiry/{{inquiry_id}}
+Content-Type: application/json
+
+{
+  "status": "under_review",
+  "assigned_to": "Sarah Chen",
+  "notes": "Reviewing checkpoint photos from Newark hub."
+}
+
+###
+
+### Add timeline note
+POST {{base}}/api/inquiry/{{inquiry_id}}/note
+Content-Type: application/json
+
+{
+  "note": "Contacted seller — no response within 24h. Escalating."
+}
+
+# ─────────────────────────────────────────────────────────────
+# TRUST SCORES
+# ─────────────────────────────────────────────────────────────
+
+### Seller leaderboard
+GET {{base}}/api/trust/sellers
+
+###
+
+### Courier leaderboard
+GET {{base}}/api/trust/couriers
+
+###
+
+### Seller trust event history
+GET {{base}}/api/trust/sellers/{{seller_id}}/history
+
+###
+
+### Flag a seller
+POST {{base}}/api/trust/sellers/{{seller_id}}/flag
+Content-Type: application/json
+
+{ "flag": true }
+
+###
+
+### Suspend a courier
+POST {{base}}/api/trust/couriers/{{courier_id}}/suspend
+Content-Type: application/json
+
+{ "suspend": true }
+
+# ─────────────────────────────────────────────────────────────
+# HEATMAP
+# ─────────────────────────────────────────────────────────────
+
+### Top fraud hotspots
+GET {{base}}/api/heatmap/hotspots
+
+###
+
+### GeoJSON for map overlay
+GET {{base}}/api/heatmap/geojson
+
+# ─────────────────────────────────────────────────────────────
+# ADMIN
+# ─────────────────────────────────────────────────────────────
+
+### Dashboard KPIs
+GET {{base}}/api/admin/dashboard
+
+# ─────────────────────────────────────────────────────────────
+# CUSTOMER (public API)
+# ─────────────────────────────────────────────────────────────
+
+### Check claim status
+GET {{base}}/api/customer/claim/CLM-DEMO1

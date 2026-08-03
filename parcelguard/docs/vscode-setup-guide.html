@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>ParcelGuard — VS Code Setup Guide</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,700&family=DM+Sans:wght@400;500;600&family=DM+Mono&display=swap');
+:root{
+  --bg:#f7f4ef;--bg2:#eee9e0;--bd:#ddd5c2;
+  --ink:#1a1612;--ink2:#4a3f32;--ink3:#8a7a68;
+  --gold:#b8804a;--gold-l:#d4a36e;--gold-d:#7a5020;
+  --green:#1c6e42;--green-bg:#edf7f0;--green-bd:rgba(28,110,66,.2);
+  --blue:#1a4a8a;--blue-bg:#eef3fc;
+  --red:#9b2525;--red-bg:#fdf0f0;
+  --serif:'Fraunces',serif;--sans:'DM Sans',sans-serif;--mono:'DM Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.7;}
+a{color:var(--gold);text-decoration:underline;text-decoration-style:dotted;}
+
+.page{max-width:860px;margin:0 auto;padding:3rem 2rem 5rem;}
+
+/* Header */
+header{background:linear-gradient(135deg,#0e1a2e,#152540);padding:3rem 2rem;text-align:center;margin-bottom:3rem;}
+header h1{font-family:var(--serif);font-size:2.4rem;color:#f0ece4;font-weight:300;letter-spacing:-.02em;margin-bottom:.5rem;}
+header h1 em{font-weight:700;color:#d4a36e;font-style:normal;}
+header p{font-size:.9rem;color:rgba(255,255,255,.5);margin-top:.5rem;}
+
+/* Step */
+.step{display:flex;gap:1.5rem;margin-bottom:2.5rem;}
+.step-num{
+  width:38px;height:38px;border-radius:50%;background:var(--gold);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--serif);font-size:1rem;font-weight:700;flex-shrink:0;margin-top:.1rem;
+}
+.step-body{flex:1;}
+.step-title{font-size:1.1rem;font-weight:600;color:var(--ink);margin-bottom:.4rem;}
+.step-desc{font-size:.88rem;color:var(--ink2);margin-bottom:.75rem;line-height:1.65;}
+
+/* Code block */
+pre{
+  background:#1a1612;color:#c8dce8;border-radius:8px;
+  padding:1rem 1.2rem;font-family:var(--mono);font-size:.78rem;
+  line-height:1.9;overflow-x:auto;margin-bottom:.75rem;position:relative;
+}
+pre .cm{color:#4a6a50;}
+pre .cmd{color:#e8c88a;}
+pre .flag{color:#88b8d8;}
+pre .val{color:#c8e8c8;}
+.copy-hint{position:absolute;top:.5rem;right:.75rem;font-size:.55rem;color:#3a5060;letter-spacing:.08em;text-transform:uppercase;}
+
+/* Info boxes */
+.box{border-radius:8px;padding:.85rem 1.1rem;margin-bottom:.75rem;font-size:.82rem;line-height:1.6;}
+.box.tip{background:var(--green-bg);border:1px solid var(--green-bd);color:var(--green);}
+.box.warn{background:#fff8ec;border:1px solid rgba(184,128,74,.25);color:var(--gold-d);}
+.box.info{background:var(--blue-bg);border:1px solid rgba(26,74,138,.15);color:var(--blue);}
+.box strong{font-weight:600;}
+
+/* File tree */
+.tree{background:#fff;border:1.5px solid var(--bd);border-radius:10px;padding:1rem 1.2rem;font-family:var(--mono);font-size:.75rem;line-height:2;color:var(--ink2);margin-bottom:.75rem;}
+.tree .dir{color:var(--gold-d);font-weight:600;}
+.tree .file{color:var(--ink2);}
+.tree .new{color:var(--green);font-weight:600;}
+.tree .comment{color:var(--ink3);}
+
+/* Extension table */
+.ext-grid{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:.75rem;}
+.ext-card{background:#fff;border:1.5px solid var(--bd);border-radius:8px;padding:.7rem .9rem;}
+.ext-id{font-family:var(--mono);font-size:.65rem;color:var(--gold-d);margin-bottom:.2rem;}
+.ext-name{font-size:.78rem;font-weight:600;color:var(--ink);}
+.ext-desc{font-size:.65rem;color:var(--ink3);margin-top:.1rem;}
+.ext-badge{display:inline-block;font-size:.52rem;padding:.1rem .4rem;border-radius:3px;margin-top:.25rem;}
+.ext-badge.must{background:var(--green-bg);color:var(--green);border:1px solid var(--green-bd);}
+.ext-badge.nice{background:var(--bg2);color:var(--ink3);}
+
+/* Port table */
+table{width:100%;border-collapse:collapse;font-size:.8rem;margin-bottom:.75rem;}
+th{background:var(--bg2);padding:.55rem .8rem;text-align:left;font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);border-bottom:2px solid var(--bd);}
+td{padding:.55rem .8rem;border-bottom:1px solid var(--bd);color:var(--ink2);}
+td:first-child{font-family:var(--mono);font-size:.75rem;color:var(--ink);}
+td code{font-family:var(--mono);font-size:.75rem;background:var(--bg2);padding:.1rem .35rem;border-radius:3px;}
+
+/* Divider */
+.divider{border:none;border-top:1px solid var(--bd);margin:2.5rem 0;}
+
+/* Section heading */
+h2{font-family:var(--serif);font-size:1.4rem;color:var(--ink);margin:2.5rem 0 .25rem;letter-spacing:-.02em;}
+h2 .sub{display:block;font-family:var(--sans);font-size:.62rem;font-weight:400;color:var(--gold);letter-spacing:.12em;text-transform:uppercase;margin-bottom:.4rem;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>📦 <em>ParcelGuard</em> — VS Code Setup</h1>
+  <p>Step-by-step guide to running the full stack in VS Code</p>
+</header>
+
+<div class="page">
+
+<!-- Prerequisites -->
+<h2><span class="sub">Before you start</span>Prerequisites</h2>
+<p style="font-size:.88rem;color:var(--ink3);margin-bottom:1.2rem;">Make sure these are installed on your machine:</p>
+
+<table>
+  <tr><th>Tool</th><th>Min version</th><th>Check / Install</th></tr>
+  <tr><td>Python</td><td>3.11+</td><td><code>python3 --version</code> · <a href="https://python.org/downloads">python.org/downloads</a></td></tr>
+  <tr><td>Node.js</td><td>18+</td><td><code>node --version</code> · <a href="https://nodejs.org">nodejs.org</a></td></tr>
+  <tr><td>PostgreSQL</td><td>15+</td><td><code>psql --version</code> · <a href="https://postgresql.org/download">postgresql.org/download</a></td></tr>
+  <tr><td>VS Code</td><td>1.85+</td><td><a href="https://code.visualstudio.com">code.visualstudio.com</a></td></tr>
+  <tr><td>Git</td><td>any</td><td><code>git --version</code></td></tr>
+</table>
+
+<hr class="divider"/>
+
+<!-- Step 1 -->
+<h2><span class="sub">Step 1</span>Copy files to your machine</h2>
+
+<div class="step">
+  <div class="step-num">1</div>
+  <div class="step-body">
+    <div class="step-title">Create the project folder and copy all outputs</div>
+    <div class="step-desc">Download all files from this session's outputs. Your folder structure should look like this:</div>
+    <div class="tree">
+      <span class="dir">parcelguard/</span><br/>
+      ├── <span class="new">.vscode/</span>          <span class="comment"># ← VS Code config (tasks, debug, settings)</span><br/>
+      │   ├── <span class="new">tasks.json</span><br/>
+      │   ├── <span class="new">launch.json</span><br/>
+      │   ├── <span class="new">settings.json</span><br/>
+      │   └── <span class="new">extensions.json</span><br/>
+      ├── <span class="dir">backend/</span><br/>
+      │   ├── <span class="dir">app/</span>  <span class="comment"># FastAPI app</span><br/>
+      │   ├── <span class="new">.env.example</span>  <span class="comment"># → copy to .env</span><br/>
+      │   └── requirements.txt<br/>
+      ├── <span class="dir">frontend/</span>          <span class="comment"># Ops portal :3000</span><br/>
+      │   ├── <span class="dir">src/</span><br/>
+      │   └── package.json<br/>
+      ├── <span class="dir">customer-portal/</span>   <span class="comment"># Customer portal :3001</span><br/>
+      │   ├── <span class="dir">src/</span><br/>
+      │   └── package.json<br/>
+      ├── <span class="new">parcelguard.code-workspace</span>  <span class="comment"># ← Open this in VS Code</span><br/>
+      ├── <span class="new">api.http</span>              <span class="comment"># REST Client test file</span><br/>
+      ├── .gitignore<br/>
+      └── README.md
+    </div>
+  </div>
+</div>
+
+<!-- Step 2 -->
+<div class="step">
+  <div class="step-num">2</div>
+  <div class="step-body">
+    <div class="step-title">Open the workspace in VS Code</div>
+    <div class="step-desc">Open the <strong>.code-workspace</strong> file — not just the folder. This sets up all four root folders correctly.</div>
+    <pre><span class="cm"># From terminal, inside the parcelguard/ folder:</span>
+<span class="cmd">code parcelguard.code-workspace</span></pre>
+    <div class="box info">
+      <strong>ℹ️ Why a workspace file?</strong> It sets up four sub-folders as separate roots (root, backend, frontend, customer-portal), so the Python interpreter, ESLint paths, and debug configs all resolve to the right directories automatically.
+    </div>
+  </div>
+</div>
+
+<!-- Step 3 -->
+<h2><span class="sub">Step 2</span>Install recommended extensions</h2>
+
+<div class="step">
+  <div class="step-num">3</div>
+  <div class="step-body">
+    <div class="step-title">Install extensions when VS Code prompts you</div>
+    <div class="step-desc">When you open the workspace, VS Code will show a notification: <em>"This workspace has extension recommendations."</em> Click <strong>Install All</strong>. Or install them manually:</div>
+    <pre><span class="cm"># Open VS Code command palette (Cmd/Ctrl + Shift + P), then:</span>
+<span class="val">Extensions: Show Recommended Extensions</span></pre>
+
+    <div class="ext-grid">
+      <div class="ext-card"><div class="ext-id">ms-python.python</div><div class="ext-name">Python</div><div class="ext-desc">IntelliSense, linting, venv support</div><span class="ext-badge must">Required</span></div>
+      <div class="ext-card"><div class="ext-id">ms-python.black-formatter</div><div class="ext-name">Black Formatter</div><div class="ext-desc">Auto-format Python on save</div><span class="ext-badge must">Required</span></div>
+      <div class="ext-card"><div class="ext-id">esbenp.prettier-vscode</div><div class="ext-name">Prettier</div><div class="ext-desc">Auto-format JS/JSX on save</div><span class="ext-badge must">Required</span></div>
+      <div class="ext-card"><div class="ext-id">dbaeumer.vscode-eslint</div><div class="ext-name">ESLint</div><div class="ext-desc">JS lint errors inline</div><span class="ext-badge must">Required</span></div>
+      <div class="ext-card"><div class="ext-id">humao.rest-client</div><div class="ext-name">REST Client</div><div class="ext-desc">Test API endpoints in api.http</div><span class="ext-badge nice">Recommended</span></div>
+      <div class="ext-card"><div class="ext-id">mtxr.sqltools-driver-pg</div><div class="ext-name">SQLTools PostgreSQL</div><div class="ext-desc">Browse DB from VS Code sidebar</div><span class="ext-badge nice">Recommended</span></div>
+      <div class="ext-card"><div class="ext-id">usernamehw.errorlens</div><div class="ext-name">Error Lens</div><div class="ext-desc">Inline error messages</div><span class="ext-badge nice">Recommended</span></div>
+      <div class="ext-card"><div class="ext-id">eamodio.gitlens</div><div class="ext-name">GitLens</div><div class="ext-desc">Git blame, history, diff</div><span class="ext-badge nice">Recommended</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- Step 4 -->
+<h2><span class="sub">Step 3</span>Set up the database</h2>
+
+<div class="step">
+  <div class="step-num">4</div>
+  <div class="step-body">
+    <div class="step-title">Create the PostgreSQL database</div>
+    <pre><span class="cm"># In your terminal (not VS Code terminal yet):</span>
+<span class="cmd">psql -U postgres</span>
+<span class="cm">-- then inside psql:</span>
+<span class="val">CREATE DATABASE parcelguard;
+\q</span></pre>
+    <div class="box warn">
+      <strong>⚠️ On macOS with Homebrew PostgreSQL:</strong> your default user may not be <code>postgres</code>. Run <code>psql -U $(whoami)</code> instead, or create a <code>postgres</code> user: <code>createuser -s postgres</code>
+    </div>
+  </div>
+</div>
+
+<!-- Step 5 -->
+<h2><span class="sub">Step 4</span>Configure the backend</h2>
+
+<div class="step">
+  <div class="step-num">5</div>
+  <div class="step-body">
+    <div class="step-title">Create your .env file</div>
+    <div class="step-desc">Copy the example and edit your database credentials:</div>
+    <pre><span class="cmd">cd backend</span>
+<span class="cmd">cp .env.example .env</span>
+<span class="cm"># Then open .env and update DATABASE_URL with your postgres password</span></pre>
+    <div class="tree">
+      <span class="comment"># backend/.env — the important line:</span><br/>
+      <span class="val">DATABASE_URL=postgresql://postgres:</span><strong style="color:#e8b870;">YOUR_PASSWORD</strong><span class="val">@localhost:5432/parcelguard</span>
+    </div>
+  </div>
+</div>
+
+<!-- Step 6 -->
+<div class="step">
+  <div class="step-num">6</div>
+  <div class="step-body">
+    <div class="step-title">Select the Python interpreter in VS Code</div>
+    <div class="step-desc">Press <kbd style="background:var(--bg2);border:1px solid var(--bd);border-radius:4px;padding:.1rem .4rem;font-family:var(--mono);font-size:.75rem;">Cmd/Ctrl + Shift + P</kbd> → <strong>Python: Select Interpreter</strong> → choose the one inside <code>backend/venv/</code> (if venv already created) or choose <code>+ Create Virtual Environment</code>.</div>
+    <div class="box tip">
+      <strong>✓ Tip:</strong> The workspace settings already point <code>python.defaultInterpreterPath</code> to <code>backend/venv/bin/python</code>. After creating the venv (next step), VS Code will use it automatically.
+    </div>
+  </div>
+</div>
+
+<!-- Step 7 - Tasks -->
+<h2><span class="sub">Step 5</span>Run everything with VS Code Tasks</h2>
+
+<div class="step">
+  <div class="step-num">7</div>
+  <div class="step-body">
+    <div class="step-title">First-time setup — install all dependencies</div>
+    <div class="step-desc">Press <kbd style="background:var(--bg2);border:1px solid var(--bd);border-radius:4px;padding:.1rem .4rem;font-family:var(--mono);font-size:.75rem;">Cmd/Ctrl + Shift + P</kbd> → <strong>Tasks: Run Task</strong> → choose:</div>
+    <pre><span class="val">🔧 First-time setup (install all deps)</span></pre>
+    <div class="step-desc" style="margin-top:.5rem;">This runs three things in sequence: creates Python venv + installs pip deps, then <code>npm install</code> for both frontends. Takes 2–5 minutes.</div>
+    <div class="box warn">
+      <strong>⚠️ PyTorch note:</strong> <code>torch</code> and <code>torchvision</code> are large (~800MB). The first pip install will take a few minutes. ResNet50 model weights (~100MB) download automatically on the first fraud analysis run.
+    </div>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-num">8</div>
+  <div class="step-body">
+    <div class="step-title">Run database migrations + seed demo data</div>
+    <pre><span class="cm"># Run these tasks in order (Tasks: Run Task → pick each one):</span>
+<span class="val">🗄️ Backend: Run migrations</span>
+<span class="val">🌱 Backend: Seed demo data</span></pre>
+    <div class="step-desc">Migrations create all 7 tables. Seed data loads 15 sellers, 10 couriers, 30 parcels, 12 fraud events, and 5 investigation cases.</div>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-num">9</div>
+  <div class="step-body">
+    <div class="step-title">Start all three servers at once</div>
+    <div class="step-desc">Press <kbd style="background:var(--bg2);border:1px solid var(--bd);border-radius:4px;padding:.1rem .4rem;font-family:var(--mono);font-size:.75rem;">Cmd/Ctrl + Shift + B</kbd> (default build task) or via <strong>Tasks: Run Task</strong>:</div>
+    <pre><span class="val">🚀 Start ALL servers</span></pre>
+    <div class="step-desc" style="margin-top:.5rem;">This launches all three in parallel — each in its own dedicated terminal panel inside VS Code.</div>
+
+    <table>
+      <tr><th>Server</th><th>URL</th><th>What it is</th></tr>
+      <tr><td>FastAPI</td><td><code>http://localhost:8000</code></td><td>API gateway + fraud engine</td></tr>
+      <tr><td><code>/docs</code></td><td><code>http://localhost:8000/docs</code></td><td>Interactive Swagger API docs</td></tr>
+      <tr><td>Ops Frontend</td><td><code>http://localhost:3000</code></td><td>Warehouse + admin screens</td></tr>
+      <tr><td>Customer Portal</td><td><code>http://localhost:3001</code></td><td>Public tracking + fraud reports</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- Step 10 - Debugging -->
+<h2><span class="sub">Step 6</span>Debugging</h2>
+
+<div class="step">
+  <div class="step-num">10</div>
+  <div class="step-body">
+    <div class="step-title">Debug the FastAPI backend</div>
+    <div class="step-desc">Press <kbd style="background:var(--bg2);border:1px solid var(--bd);border-radius:4px;padding:.1rem .4rem;font-family:var(--mono);font-size:.75rem;">F5</kbd> or go to <strong>Run → Start Debugging</strong> → select <strong>⚡ Debug FastAPI</strong>. Set breakpoints in any router or service file — they'll hit when you make API requests.</div>
+    <div class="box tip">
+      <strong>✓ Pro tip:</strong> Use the <strong>🚀 Full Stack (Backend + Chrome)</strong> compound config to launch the FastAPI debugger AND a Chrome debug window pointed at <code>:3000</code> simultaneously — set breakpoints in both Python and JS.
+    </div>
+  </div>
+</div>
+
+<!-- Step 11 - REST Client -->
+<h2><span class="sub">Step 7</span>Test the API with REST Client</h2>
+
+<div class="step">
+  <div class="step-num">11</div>
+  <div class="step-body">
+    <div class="step-title">Use api.http to send requests without leaving VS Code</div>
+    <div class="step-desc">Open <code>api.http</code> in the root folder. With the REST Client extension, every request block shows a clickable <strong>Send Request</strong> link above it.</div>
+    <pre><span class="cm">### List all parcels</span>
+<span class="cmd">GET</span> <span class="val">http://localhost:8000/api/parcels?limit=10</span>
+
+<span class="cm">### Trigger fraud analysis</span>
+<span class="cmd">POST</span> <span class="val">http://localhost:8000/api/fraud/analyze/{{parcel_id}}</span></pre>
+    <div class="box info">
+      <strong>ℹ️</strong> Set <code>@parcel_id</code> at the top of the file to a real UUID from your seeded data. Find IDs at <a href="http://localhost:8000/docs" target="_blank">localhost:8000/docs</a> → GET /api/parcels.
+    </div>
+  </div>
+</div>
+
+<!-- Troubleshooting -->
+<h2><span class="sub">Common issues</span>Troubleshooting</h2>
+
+<div style="display:flex;flex-direction:column;gap:.75rem;margin-bottom:1.5rem;">
+  <div style="background:#fff;border:1.5px solid var(--bd);border-radius:8px;padding:.9rem 1.1rem;">
+    <div style="font-weight:600;color:var(--red);font-size:.82rem;margin-bottom:.3rem;">❌ "relation does not exist" — database error on startup</div>
+    <div style="font-size:.78rem;color:var(--ink2);">Migrations haven't run yet. Run the <strong>🗄️ Backend: Run migrations</strong> task, then restart the backend.</div>
+  </div>
+  <div style="background:#fff;border:1.5px solid var(--bd);border-radius:8px;padding:.9rem 1.1rem;">
+    <div style="font-weight:600;color:var(--red);font-size:.82rem;margin-bottom:.3rem;">❌ Python: "ModuleNotFoundError: No module named 'app'"</div>
+    <div style="font-size:.78rem;color:var(--ink2);">PYTHONPATH isn't set. The VS Code workspace settings handle this automatically — make sure you opened the <code>.code-workspace</code> file, not just the folder. Alternatively run: <code>export PYTHONPATH=$(pwd)</code> in the backend terminal before starting uvicorn.</div>
+  </div>
+  <div style="background:#fff;border:1.5px solid var(--bd);border-radius:8px;padding:.9rem 1.1rem;">
+    <div style="font-weight:600;color:var(--red);font-size:.82rem;margin-bottom:.3rem;">❌ Frontend: "Failed to fetch" / CORS error in browser console</div>
+    <div style="font-size:.78rem;color:var(--ink2);">The backend isn't running, or it started on a different port. Check the FastAPI terminal for errors. The Vite proxy (in <code>vite.config.js</code>) forwards <code>/api</code> to <code>localhost:8000</code> — only works during <code>npm run dev</code>.</div>
+  </div>
+  <div style="background:#fff;border:1.5px solid var(--bd);border-radius:8px;padding:.9rem 1.1rem;">
+    <div style="font-weight:600;color:var(--red);font-size:.82rem;margin-bottom:.3rem;">❌ "psycopg2.OperationalError: could not connect to server"</div>
+    <div style="font-size:.78rem;color:var(--ink2);">PostgreSQL isn't running. On macOS: <code>brew services start postgresql@15</code>. On Linux: <code>sudo service postgresql start</code>. On Windows: open Services and start PostgreSQL.</div>
+  </div>
+  <div style="background:#fff;border:1.5px solid var(--bd);border-radius:8px;padding:.9rem 1.1rem;">
+    <div style="font-weight:600;color:var(--red);font-size:.82rem;margin-bottom:.3rem;">❌ VS Code shows the wrong Python interpreter</div>
+    <div style="font-size:.78rem;color:var(--ink2);"><kbd style="background:var(--bg2);border:1px solid var(--bd);border-radius:3px;padding:.05rem .3rem;font-family:var(--mono);font-size:.75rem;">Cmd/Ctrl+Shift+P</kbd> → <strong>Python: Select Interpreter</strong> → navigate to <code>backend/venv/bin/python</code> (macOS/Linux) or <code>backend\venv\Scripts\python.exe</code> (Windows).</div>
+  </div>
+</div>
+
+<hr class="divider"/>
+
+<div style="text-align:center;padding:1.5rem 0;font-size:.8rem;color:var(--ink3);">
+  📦 ParcelGuard · Supply Chain Integrity Hackathon · FastAPI + React + ResNet50
+</div>
+
+</div>
+</body>
+</html>

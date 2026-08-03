@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ParcelGuard – Project Structure</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Syne:wght@600;700;800&display=swap');
+
+  :root {
+    --bg: #0a0e0a;
+    --surface: #0f1a0f;
+    --surface2: #142014;
+    --border: #1e3020;
+    --accent: #39ff14;
+    --accent2: #00d4ff;
+    --accent3: #f5a623;
+    --accent4: #ff4d6d;
+    --text: #d4e8d4;
+    --muted: #4a7a4a;
+    --dim: #2a4a2a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 10% 20%, rgba(57,255,20,0.04) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 60% at 90% 80%, rgba(0,212,255,0.03) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  header {
+    position: relative; z-index: 10;
+    padding: 2rem 2.5rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 1.2rem;
+  }
+  .logo { font-family: 'Syne', sans-serif; font-size: 1.5rem; font-weight: 800; }
+  .logo span { color: var(--accent); }
+  .step-tag {
+    margin-left: auto;
+    background: rgba(57,255,20,0.08);
+    border: 1px solid rgba(57,255,20,0.3);
+    color: var(--accent);
+    font-size: 0.6rem;
+    padding: 0.35rem 0.8rem;
+    border-radius: 4px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  header p { font-size: 0.65rem; color: var(--muted); margin-top: 0.15rem; }
+
+  .layout {
+    position: relative; z-index: 10;
+    display: grid;
+    grid-template-columns: 420px 1fr;
+    gap: 0;
+    height: calc(100vh - 90px);
+  }
+
+  /* ── TREE PANEL ── */
+  .tree-panel {
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    padding: 1.5rem 0;
+    background: var(--surface);
+  }
+  .tree-panel::-webkit-scrollbar { width: 4px; }
+  .tree-panel::-webkit-scrollbar-track { background: transparent; }
+  .tree-panel::-webkit-scrollbar-thumb { background: var(--dim); border-radius: 2px; }
+
+  .tree-title {
+    font-size: 0.55rem;
+    color: var(--muted);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 0 1.5rem 0.8rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 0.5rem;
+  }
+
+  .tree-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.28rem 1.5rem;
+    font-size: 0.72rem;
+    cursor: pointer;
+    transition: background 0.15s;
+    border-left: 2px solid transparent;
+    line-height: 1.4;
+    user-select: none;
+  }
+  .tree-item:hover { background: var(--surface2); }
+  .tree-item.active {
+    background: rgba(57,255,20,0.06);
+    border-left-color: var(--accent);
+    color: var(--accent);
+  }
+  .tree-item.folder { color: var(--accent2); font-weight: 600; }
+  .tree-item.folder.root { color: var(--accent); font-weight: 700; font-size: 0.78rem; margin-top: 0.3rem; }
+  .tree-item.file { color: #8aba8a; }
+  .tree-item.file.important { color: var(--accent3); }
+  .tree-item.file.ai { color: var(--accent4); }
+  .tree-item.file.config { color: #a0a0a0; }
+
+  .indent-1 { padding-left: 2.2rem; }
+  .indent-2 { padding-left: 3.4rem; }
+  .indent-3 { padding-left: 4.6rem; }
+  .indent-4 { padding-left: 5.8rem; }
+
+  .icon { font-size: 0.85rem; flex-shrink: 0; }
+  .ext {
+    margin-left: auto;
+    font-size: 0.5rem;
+    color: var(--dim);
+    letter-spacing: 0.05em;
+  }
+
+  /* ── DETAIL PANEL ── */
+  .detail-panel {
+    overflow-y: auto;
+    padding: 2rem 2.5rem;
+    background: var(--bg);
+  }
+  .detail-panel::-webkit-scrollbar { width: 4px; }
+  .detail-panel::-webkit-scrollbar-thumb { background: var(--dim); border-radius: 2px; }
+
+  .detail-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 60%;
+    color: var(--muted);
+    text-align: center;
+    gap: 0.8rem;
+  }
+  .detail-placeholder .big { font-size: 2.5rem; }
+  .detail-placeholder p { font-size: 0.65rem; line-height: 1.6; max-width: 300px; }
+
+  .detail-content { display: none; }
+  .detail-content.visible { display: block; }
+
+  .file-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.2rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .file-icon-big { font-size: 2rem; }
+  .file-path {
+    font-size: 0.7rem;
+    color: var(--accent2);
+    margin-bottom: 0.3rem;
+  }
+  .file-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 0.3rem;
+  }
+  .file-purpose {
+    font-size: 0.65rem;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  .detail-section { margin-bottom: 1.5rem; }
+  .detail-section h4 {
+    font-size: 0.58rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    margin-bottom: 0.7rem;
+  }
+
+  .detail-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.7rem;
+    border-radius: 5px;
+    font-size: 0.6rem;
+    margin: 0.25rem;
+    border: 1px solid;
+  }
+  .badge-blue { background: rgba(0,212,255,0.08); border-color: rgba(0,212,255,0.25); color: #00d4ff; }
+  .badge-green { background: rgba(57,255,20,0.08); border-color: rgba(57,255,20,0.25); color: #39ff14; }
+  .badge-gold { background: rgba(245,166,35,0.08); border-color: rgba(245,166,35,0.25); color: #f5a623; }
+  .badge-red { background: rgba(255,77,109,0.08); border-color: rgba(255,77,109,0.25); color: #ff4d6d; }
+
+  .exports-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  .exports-list li {
+    font-size: 0.65rem;
+    color: #8aba8a;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .exports-list li::before { content: '→'; color: var(--accent); }
+
+  .code-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem;
+    font-size: 0.62rem;
+    line-height: 1.7;
+    color: #8aba8a;
+    overflow-x: auto;
+    white-space: pre;
+  }
+  .code-block .kw { color: #00d4ff; }
+  .code-block .fn { color: #f5a623; }
+  .code-block .str { color: #39ff14; }
+  .code-block .cm { color: var(--muted); font-style: italic; }
+
+  /* legend */
+  .legend {
+    display: flex; gap: 1rem; flex-wrap: wrap;
+    padding: 0.8rem 1.5rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.55rem;
+  }
+  .legend-item { display: flex; align-items: center; gap: 0.35rem; color: var(--muted); }
+  .legend-dot { width: 7px; height: 7px; border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="logo">Parcel<span>Guard</span></div>
+    <p>Step 02 / 14 · Project Folder Structure</p>
+  </div>
+  <div class="step-tag">Click any file to inspect</div>
+</header>
+
+<div class="layout">
+
+  <!-- ── TREE ── -->
+  <div class="tree-panel">
+    <div class="tree-title">📂 parcelguard/ — root workspace</div>
+
+    <!-- ROOT -->
+    <div class="tree-item root folder" onclick="show('root')"><span class="icon">📦</span> parcelguard/</div>
+    <div class="tree-item config indent-1" onclick="show('docker-compose')"><span class="icon">🐳</span> docker-compose.yml <span class="ext">YAML</span></div>
+    <div class="tree-item config indent-1" onclick="show('env')"><span class="icon">🔐</span> .env.example <span class="ext">ENV</span></div>
+    <div class="tree-item config indent-1" onclick="show('readme')"><span class="icon">📄</span> README.md <span class="ext">MD</span></div>
+
+    <!-- BACKEND -->
+    <div class="tree-item folder indent-1" style="margin-top:0.5rem;" onclick="show('backend')"><span class="icon">🐍</span> backend/</div>
+    <div class="tree-item config indent-2" onclick="show('requirements')"><span class="icon">📋</span> requirements.txt <span class="ext">TXT</span></div>
+    <div class="tree-item config indent-2" onclick="show('alembic-ini')"><span class="icon">⚙️</span> alembic.ini <span class="ext">INI</span></div>
+
+    <div class="tree-item folder indent-2" onclick="show('app-folder')"><span class="icon">📁</span> app/</div>
+    <div class="tree-item important indent-3" onclick="show('main')"><span class="icon">🚀</span> main.py <span class="ext">PY</span></div>
+    <div class="tree-item important indent-3" onclick="show('config')"><span class="icon">⚙️</span> config.py <span class="ext">PY</span></div>
+    <div class="tree-item indent-3" onclick="show('database')"><span class="icon">🗄️</span> database.py <span class="ext">PY</span></div>
+
+    <div class="tree-item folder indent-3"><span class="icon">📁</span> models/</div>
+    <div class="tree-item indent-4" onclick="show('models-parcel')"><span class="icon">📦</span> parcel.py <span class="ext">PY</span></div>
+    <div class="tree-item indent-4" onclick="show('models-user')"><span class="icon">👤</span> user.py <span class="ext">PY</span></div>
+    <div class="tree-item indent-4" onclick="show('models-fraud')"><span class="icon">🚨</span> fraud.py <span class="ext">PY</span></div>
+    <div class="tree-item indent-4" onclick="show('models-trust')"><span class="icon">⭐</span> trust.py <span class="ext">PY</span></div>
+    <div class="tree-item indent-4" onclick="show('models-inquiry')"><span class="icon">🔍</span> inquiry.py <span class="ext">PY</span></div>
+
+    <div class="tree-item folder indent-3"><span class="icon">📁</span> schemas/</div>
+    <div class="tree-item indent-4"><span class="icon">📋</span> parcel.py <span class="ext">PY</span></div>
+    <div class="tree-item indent-4"><span class="icon">📋</span> fraud.py <span class="ext">PY</span></div>
+    <div class="tree-item indent-4"><span class="icon">📋</span> trust.py <span class="ext">PY</span></div>
+
+    <div class="tree-item folder indent-3"><span class="icon">📁</span> routers/</div>
+    <div class="tree-item important indent-4" onclick="show('router-parcels')"><span class="icon">📬</span> parcels.py <span class="ext">PY</span></div>
+    <div class="tree-item important indent-4" onclick="show('router-fraud')"><span class="icon">🚨</span> fraud.py <span class="ext">PY</span></div>
+    <div class="tree-item indent-4" onclick="show('router-verify')"><span class="icon">✅</span> verification.py <span class="ext">PY</span></div>
+    <div class="tree-item indent-4" onclick="show('router-customer')"><span class="icon">🌐</span> customer.py <span class="ext">PY</span></div>
+    <div class="tree-item indent-4" onclick="show('router-inquiry')"><span class="icon">🔍</span> inquiry.py <span class="ext">PY</span></div>
+    <div class="tree-item indent-4" onclick="show('router-trust')"><span class="icon">⭐</span> trust.py <span class="ext">PY</span></div>
+    <div class="tree-item indent-4" onclick="show('router-heatmap')"><span class="icon">🗺️</span> heatmap.py <span class="ext">PY</span></div>
+    <div class="tree-item indent-4" onclick="show('router-admin')"><span class="icon">🛡️</span> admin.py <span class="ext">PY</span></div>
+
+    <div class="tree-item folder indent-3"><span class="icon">📁</span> services/</div>
+    <div class="tree-item ai indent-4" onclick="show('svc-ai')"><span class="icon">🤖</span> ai_engine.py <span class="ext">PY</span></div>
+    <div class="tree-item ai indent-4" onclick="show('svc-image')"><span class="icon">🖼️</span> image_compare.py <span class="ext">PY</span></div>
+    <div class="tree-item indent-4" onclick="show('svc-fraud')"><span class="icon">🚨</span> fraud_detector.py <span class="ext">PY</span></div>
+    <div class="tree-item indent-4" onclick="show('svc-trust')"><span class="icon">⭐</span> trust_engine.py <span class="ext">PY</span></div>
+    <div class="tree-item indent-4" onclick="show('svc-heatmap')"><span class="icon">🗺️</span> heatmap_service.py <span class="ext">PY</span></div>
+
+    <div class="tree-item folder indent-3"><span class="icon">📁</span> migrations/ <span style="font-size:0.5rem;color:var(--muted);margin-left:0.3rem;">(Alembic)</span></div>
+    <div class="tree-item config indent-4"><span class="icon">📄</span> env.py <span class="ext">PY</span></div>
+    <div class="tree-item folder indent-4"><span class="icon">📁</span> versions/</div>
+
+    <div class="tree-item folder indent-3"><span class="icon">📁</span> uploads/ <span style="font-size:0.5rem;color:var(--muted);margin-left:0.3rem;">(gitignored)</span></div>
+    <div class="tree-item config indent-4"><span class="icon">📁</span> xray/</div>
+    <div class="tree-item config indent-4"><span class="icon">📁</span> parcel_photos/</div>
+    <div class="tree-item config indent-4"><span class="icon">📁</span> customer_media/</div>
+
+    <div class="tree-item folder indent-3"><span class="icon">📁</span> seed/</div>
+    <div class="tree-item indent-4" onclick="show('seed')"><span class="icon">🌱</span> seed_data.py <span class="ext">PY</span></div>
+
+    <!-- MAIN FRONTEND -->
+    <div class="tree-item folder indent-1" style="margin-top:0.5rem;" onclick="show('frontend-main')"><span class="icon">⚛️</span> frontend/ <span style="font-size:0.5rem;color:var(--muted);margin-left:0.3rem;">(main app · port 3000)</span></div>
+    <div class="tree-item config indent-2"><span class="icon">📋</span> package.json</div>
+    <div class="tree-item config indent-2"><span class="icon">⚙️</span> vite.config.js</div>
+    <div class="tree-item config indent-2"><span class="icon">⚙️</span> tailwind.config.js</div>
+
+    <div class="tree-item folder indent-2"><span class="icon">📁</span> src/</div>
+    <div class="tree-item important indent-3" onclick="show('fe-app')"><span class="icon">🚀</span> App.jsx <span class="ext">JSX</span></div>
+    <div class="tree-item indent-3"><span class="icon">📄</span> main.jsx <span class="ext">JSX</span></div>
+    <div class="tree-item indent-3"><span class="icon">🎨</span> index.css <span class="ext">CSS</span></div>
+
+    <div class="tree-item folder indent-3"><span class="icon">📁</span> pages/</div>
+    <div class="tree-item important indent-4" onclick="show('page-packing')"><span class="icon">🏭</span> PackingPortal.jsx <span class="ext">JSX</span></div>
+    <div class="tree-item important indent-4" onclick="show('page-delivery')"><span class="icon">🚚</span> DeliveryVerification.jsx <span class="ext">JSX</span></div>
+    <div class="tree-item important indent-4" onclick="show('page-admin')"><span class="icon">🛡️</span> AdminDashboard.jsx <span class="ext">JSX</span></div>
+    <div class="tree-item indent-4" onclick="show('page-inquiry')"><span class="icon">🔍</span> InquirySystem.jsx <span class="ext">JSX</span></div>
+    <div class="tree-item indent-4" onclick="show('page-heatmap')"><span class="icon">🗺️</span> FraudHeatmap.jsx <span class="ext">JSX</span></div>
+    <div class="tree-item indent-4" onclick="show('page-trust')"><span class="icon">⭐</span> TrustScores.jsx <span class="ext">JSX</span></div>
+
+    <div class="tree-item folder indent-3"><span class="icon">📁</span> components/</div>
+    <div class="tree-item indent-4"><span class="icon">🔲</span> Navbar.jsx</div>
+    <div class="tree-item indent-4"><span class="icon">🔲</span> FraudAlert.jsx</div>
+    <div class="tree-item indent-4"><span class="icon">🔲</span> ParcelCard.jsx</div>
+    <div class="tree-item indent-4"><span class="icon">🔲</span> ImageUpload.jsx</div>
+    <div class="tree-item indent-4"><span class="icon">🔲</span> ScoreGauge.jsx</div>
+    <div class="tree-item indent-4"><span class="icon">🔲</span> StatusBadge.jsx</div>
+
+    <div class="tree-item folder indent-3"><span class="icon">📁</span> api/</div>
+    <div class="tree-item indent-4" onclick="show('fe-api')"><span class="icon">🔌</span> client.js <span class="ext">JS</span></div>
+    <div class="tree-item indent-4"><span class="icon">🔌</span> parcels.js</div>
+    <div class="tree-item indent-4"><span class="icon">🔌</span> fraud.js</div>
+
+    <div class="tree-item folder indent-3"><span class="icon">📁</span> store/</div>
+    <div class="tree-item indent-4"><span class="icon">💾</span> useParcelStore.js <span style="font-size:0.5rem;color:var(--muted);">(Zustand)</span></div>
+    <div class="tree-item indent-4"><span class="icon">💾</span> useFraudStore.js</div>
+
+    <!-- CUSTOMER FRONTEND -->
+    <div class="tree-item folder indent-1" style="margin-top:0.5rem;" onclick="show('frontend-customer')">
+      <span class="icon">🌐</span> customer-portal/
+      <span style="font-size:0.5rem;color:var(--accent3);margin-left:0.4rem;background:rgba(245,166,35,0.1);padding:0.1rem 0.4rem;border-radius:3px;">★ SEPARATE APP · port 3001</span>
+    </div>
+    <div class="tree-item config indent-2"><span class="icon">📋</span> package.json</div>
+    <div class="tree-item folder indent-2"><span class="icon">📁</span> src/</div>
+    <div class="tree-item important indent-3" onclick="show('cust-app')"><span class="icon">🚀</span> App.jsx <span class="ext">JSX</span></div>
+    <div class="tree-item folder indent-3"><span class="icon">📁</span> pages/</div>
+    <div class="tree-item important indent-4" onclick="show('cust-verify')"><span class="icon">📸</span> VerifyDelivery.jsx <span class="ext">JSX</span></div>
+    <div class="tree-item indent-4" onclick="show('cust-status')"><span class="icon">📊</span> ClaimStatus.jsx <span class="ext">JSX</span></div>
+    <div class="tree-item folder indent-3"><span class="icon">📁</span> api/</div>
+    <div class="tree-item indent-4" onclick="show('cust-api')"><span class="icon">🔌</span> client.js <span style="font-size:0.5rem;color:var(--accent3);margin-left:0.3rem;">→ port 8000</span></div>
+  </div>
+
+  <!-- ── DETAIL PANEL ── -->
+  <div class="detail-panel" id="detail">
+
+    <div class="detail-placeholder" id="placeholder">
+      <div class="big">🌲</div>
+      <div style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;color:#4a7a4a;">Click a file to inspect it</div>
+      <p>Each file in the tree has a defined purpose, exports, and location. Click any entry on the left to learn what goes in it and why.</p>
+    </div>
+
+    <!-- FILE DETAIL CARDS -->
+
+    <div class="detail-content" id="d-root">
+      <div class="file-header">
+        <div class="file-icon-big">📦</div>
+        <div>
+          <div class="file-path">/ (workspace root)</div>
+          <div class="file-name">parcelguard/</div>
+          <div class="file-purpose">Root monorepo workspace. Contains backend, frontend, and customer-portal as sibling directories. Docker Compose orchestrates all services from here.</div>
+        </div>
+      </div>
+      <div class="detail-section">
+        <h4>Services in docker-compose.yml</h4>
+        <span class="detail-badge badge-blue">🐍 backend (port 8000)</span>
+        <span class="detail-badge badge-green">⚛️ frontend (port 3000)</span>
+        <span class="detail-badge badge-gold">🌐 customer-portal (port 3001)</span>
+        <span class="detail-badge badge-red">🗄️ postgres (port 5432)</span>
+      </div>
+    </div>
+
+    <div class="detail-content" id="d-docker-compose">
+      <div class="file-header">
+        <div class="file-icon-big">🐳</div>
+        <div>
+          <div class="file-path">/docker-compose.yml</div>
+          <div class="file-name">docker-compose.yml</div>
+          <div class="file-purpose">Orchestrates all 4 services: postgres, backend, frontend, customer-portal. One command to run the entire system: <code>docker-compose up</code></div>
+        </div>
+      </div>
+      <div class="detail-section">
+        <h4>Services defined</h4>
+        <ul class="exports-list">
+          <li>postgres — Official postgres:15 image, volume mounted for data persistence</li>
+          <li>backend — Python FastAPI, depends on postgres, mounts uploads/ volume</li>
+          <li>frontend — Vite dev server, port 3000, env VITE_API_URL=http://localhost:8000</li>
+          <li>customer-portal — Vite dev server, port 3001, env VITE_API_URL=http://localhost:8000</li>
+        </ul>
+      </div>
+      <div class="detail-section">
+        <h4>Hackathon tip</h4>
+        <div class="code-block"><span class="cm"># Run everything with one command:</span>
+docker-compose up --build
+
+<span class="cm"># Or run backend only (no Docker):</span>
+cd backend && uvicorn app.main:app --reload</div>
+      </div>
+    </div>
+
+    <div class="detail-content" id="d-main">
+      <div class="file-header">
+        <div class="file-icon-big">🚀</div>
+        <div>
+          <div class="file-path">/backend/app/main.py</div>
+          <div class="file-name">main.py</div>
+          <div class="file-purpose">FastAPI app entrypoint. Creates the app instance, registers all routers, configures CORS (critical for customer-portal cross-origin requests), mounts static file serving for uploads.</div>
+        </div>
+      </div>
+      <div class="detail-section">
+        <h4>What it does</h4>
+        <ul class="exports-list">
+          <li>Creates FastAPI() app with title, description, version</li>
+          <li>Adds CORSMiddleware — allows origin http://localhost:3001 (customer portal)</li>
+          <li>Includes all routers with /api prefix</li>
+          <li>Mounts /uploads as static files</li>
+          <li>@app.on_event("startup") creates DB tables</li>
+        </ul>
+      </div>
+      <div class="detail-section">
+        <h4>Skeleton preview</h4>
+        <div class="code-block"><span class="kw">from</span> fastapi <span class="kw">import</span> FastAPI
+<span class="kw">from</span> fastapi.middleware.cors <span class="kw">import</span> CORSMiddleware
+<span class="kw">from</span> app.routers <span class="kw">import</span> parcels, fraud, verification ...
+
+app = <span class="fn">FastAPI</span>(title=<span class="str">"ParcelGuard API"</span>, version=<span class="str">"1.0"</span>)
+app.<span class="fn">add_middleware</span>(CORSMiddleware, allow_origins=[<span class="str">"*"</span>], ...)
+app.<span class="fn">include_router</span>(parcels.router, prefix=<span class="str">"/api/parcels"</span>)
+app.<span class="fn">include_router</span>(fraud.router, prefix=<span class="str">"/api/fraud"</span>)</div>
+      </div>
+    </div>
+
+    <div class="detail-content" id="d-svc-ai">
+      <div class="file-header">
+        <div class="file-icon-big">🤖</div>
+        <div>
+          <div class="file-path">/backend/app/services/ai_engine.py</div>
+          <div class="file-name">ai_engine.py</div>
+          <div class="file-purpose">The brain of ParcelGuard. Loads ResNet50 (pre-trained), extracts image embeddings, computes cosine similarity between packing/courier/customer photos. Returns image delta score 0–1.</div>
+        </div>
+      </div>
+      <div class="detail-section">
+        <h4>Exports</h4>
+        <ul class="exports-list">
+          <li>get_embedding(image_path) → torch.Tensor [2048-dim]</li>
+          <li>compare_images(path_a, path_b) → float (similarity 0–1)</li>
+          <li>load_model() → singleton ResNet50 instance</li>
+        </ul>
+      </div>
+      <div class="detail-section">
+        <h4>How it works</h4>
+        <div class="code-block"><span class="cm"># 1. Load ResNet50 (no final classification layer)</span>
+model = <span class="fn">resnet50</span>(pretrained=True)
+model = nn.Sequential(*list(model.children())[:-1])
+
+<span class="cm"># 2. Preprocess image → normalize → forward pass</span>
+embedding = <span class="fn">get_embedding</span>(<span class="str">"uploads/parcel_photos/abc.jpg"</span>)
+
+<span class="cm"># 3. Cosine similarity between two embeddings</span>
+score = F.<span class="fn">cosine_similarity</span>(emb_a, emb_b)
+<span class="cm"># score ~1.0 = same item, score ~0.3 = very different</span></div>
+      </div>
+    </div>
+
+    <div class="detail-content" id="d-svc-fraud">
+      <div class="file-header">
+        <div class="file-icon-big">🚨</div>
+        <div>
+          <div class="file-path">/backend/app/services/fraud_detector.py</div>
+          <div class="file-name">fraud_detector.py</div>
+          <div class="file-purpose">Combines all signals into a final fraud score and determines attribution (seller vs courier). This is where the business logic lives.</div>
+        </div>
+      </div>
+      <div class="detail-section">
+        <h4>Fraud Score Formula</h4>
+        <div class="code-block">score = (
+  image_delta * <span class="str">0.40</span>   <span class="cm"># AI image comparison</span>
+  + weight_delta * <span class="str">0.25</span>  <span class="cm"># weight mismatch</span>
+  + rfid_flag * <span class="str">0.20</span>    <span class="cm"># RFID mismatch</span>
+  + dim_delta * <span class="str">0.15</span>    <span class="cm"># dimension mismatch</span>
+) * <span class="str">100</span>
+
+<span class="cm"># Attribution:
+# packing→courier mismatch → COURIER_FRAUD
+# packing→customer mismatch (chain ok) → SELLER_FRAUD</span></div>
+      </div>
+    </div>
+
+    <div class="detail-content" id="d-frontend-main">
+      <div class="file-header">
+        <div class="file-icon-big">⚛️</div>
+        <div>
+          <div class="file-path">/frontend/</div>
+          <div class="file-name">frontend/ (Main App)</div>
+          <div class="file-purpose">Vite + React + Tailwind app running on port 3000. Contains Packing Portal, Delivery Verification, Admin Dashboard, Inquiry System, Heatmap, and Trust Scores — all in one authenticated app with React Router.</div>
+        </div>
+      </div>
+      <div class="detail-section">
+        <h4>Key dependencies</h4>
+        <span class="detail-badge badge-blue">react-router-dom</span>
+        <span class="detail-badge badge-green">axios</span>
+        <span class="detail-badge badge-gold">zustand (state)</span>
+        <span class="detail-badge badge-red">leaflet (heatmap)</span>
+        <span class="detail-badge badge-blue">recharts (charts)</span>
+        <span class="detail-badge badge-green">react-dropzone</span>
+      </div>
+    </div>
+
+    <div class="detail-content" id="d-frontend-customer">
+      <div class="file-header">
+        <div class="file-icon-big">🌐</div>
+        <div>
+          <div class="file-path">/customer-portal/</div>
+          <div class="file-name">customer-portal/ ★ SEPARATE APP</div>
+          <div class="file-purpose">Completely separate Vite + React app on port 3001. This is the public-facing website customers visit after receiving their parcel. It communicates with the main backend (port 8000) via REST API. Different origin = CORS enforced.</div>
+        </div>
+      </div>
+      <div class="detail-section">
+        <h4>Why separate?</h4>
+        <ul class="exports-list">
+          <li>Simulates real-world B2C portal (different domain in production)</li>
+          <li>No auth required — public access with parcel UUID/QR code</li>
+          <li>CORS validation tests the API security model</li>
+          <li>Can be deployed independently (Vercel, Netlify, etc.)</li>
+        </ul>
+      </div>
+      <div class="detail-section">
+        <h4>Pages</h4>
+        <ul class="exports-list">
+          <li>/ — Home (enter tracking ID or scan QR)</li>
+          <li>/verify/:parcelId — Upload photo/video of received parcel</li>
+          <li>/status/:claimId — Check fraud investigation status</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="detail-content" id="d-fe-api">
+      <div class="file-header">
+        <div class="file-icon-big">🔌</div>
+        <div>
+          <div class="file-path">/frontend/src/api/client.js</div>
+          <div class="file-name">client.js</div>
+          <div class="file-purpose">Axios instance pre-configured with base URL, auth headers, and interceptors for error handling. All API modules import from this single client.</div>
+        </div>
+      </div>
+      <div class="detail-section">
+        <h4>Configuration</h4>
+        <div class="code-block"><span class="kw">import</span> axios from <span class="str">'axios'</span>
+<span class="kw">const</span> client = axios.<span class="fn">create</span>({
+  baseURL: import.meta.env.<span class="fn">VITE_API_URL</span> || <span class="str">'http://localhost:8000'</span>,
+  timeout: <span class="str">30000</span>,
+})
+<span class="cm">// Response interceptor → auto-handle 422/500 errors</span>
+<span class="kw">export default</span> client</div>
+      </div>
+    </div>
+
+    <div class="detail-content" id="d-seed">
+      <div class="file-header">
+        <div class="file-icon-big">🌱</div>
+        <div>
+          <div class="file-path">/backend/seed/seed_data.py</div>
+          <div class="file-name">seed_data.py</div>
+          <div class="file-purpose">Demo dataset for the hackathon. Seeds 10 sellers, 8 couriers, 50 parcels, 12 fraud events with realistic geolocation data for the heatmap. Run this for a fully populated demo.</div>
+        </div>
+      </div>
+      <div class="detail-section">
+        <h4>Seeds</h4>
+        <ul class="exports-list">
+          <li>10 sellers (mix of high/low trust scores)</li>
+          <li>8 courier agents (with route history)</li>
+          <li>50 parcels across full lifecycle states</li>
+          <li>12 fraud events (6 seller fraud, 4 courier fraud, 2 RFID fraud)</li>
+          <li>Geo coordinates across 5 cities for heatmap</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="detail-content" id="d-requirements">
+      <div class="file-header">
+        <div class="file-icon-big">📋</div>
+        <div>
+          <div class="file-path">/backend/requirements.txt</div>
+          <div class="file-name">requirements.txt</div>
+          <div class="file-purpose">All Python dependencies for the backend.</div>
+        </div>
+      </div>
+      <div class="detail-section">
+        <div class="code-block">fastapi==0.104.1
+uvicorn[standard]==0.24.0
+sqlalchemy==2.0.23
+alembic==1.12.1
+psycopg2-binary==2.9.9
+python-multipart==0.0.6
+python-dotenv==1.0.0
+pillow==10.1.0
+torch==2.1.0
+torchvision==0.16.0
+opencv-python-headless==4.8.1.78
+numpy==1.26.2
+scikit-learn==1.3.2
+pydantic==2.5.0
+pydantic-settings==2.1.0</div>
+      </div>
+    </div>
+
+    <div class="detail-content" id="d-env">
+      <div class="file-header">
+        <div class="file-icon-big">🔐</div>
+        <div>
+          <div class="file-path">/.env.example</div>
+          <div class="file-name">.env.example</div>
+          <div class="file-purpose">Template for environment variables. Copy to .env and fill in values. Never commit .env to git.</div>
+        </div>
+      </div>
+      <div class="detail-section">
+        <div class="code-block"><span class="cm"># Database</span>
+DATABASE_URL=postgresql://postgres:password@localhost:5432/parcelguard
+
+<span class="cm"># App</span>
+SECRET_KEY=your-secret-key-here
+UPLOAD_DIR=./uploads
+MAX_FILE_SIZE_MB=50
+
+<span class="cm"># AI Model</span>
+MODEL_CACHE_DIR=./model_cache
+
+<span class="cm"># Fraud thresholds</span>
+FRAUD_HIGH_THRESHOLD=70
+FRAUD_MEDIUM_THRESHOLD=30</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#f5a623;"></div> Critical file</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#ff4d6d;"></div> AI/ML file</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#8aba8a;"></div> Standard module</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#a0a0a0;"></div> Config file</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#00d4ff;"></div> Folder</div>
+  <div style="margin-left:auto;font-size:0.55rem;color:var(--muted);">Total files to create: ~52 · Est. lines of code: ~3,200</div>
+</div>
+
+<script>
+  function show(id) {
+    document.querySelectorAll('.detail-content').forEach(el => el.classList.remove('visible'));
+    document.getElementById('placeholder').style.display = 'none';
+    const el = document.getElementById('d-' + id);
+    if (el) el.classList.add('visible');
+
+    document.querySelectorAll('.tree-item').forEach(el => el.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+  }
+</script>
+</body>
+</html>

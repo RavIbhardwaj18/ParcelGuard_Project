@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>ParcelGuard – Fraud Threat Map</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Black+Ops+One&display=swap');
+:root{
+  --bg:#04060a;--s1:#080c12;--s2:#0d1520;--bd:#0f1c2a;--bd2:#162538;
+  --red:#ff3333;--orange:#ff8c00;--yellow:#ffcc00;--green:#00ff88;--cyan:#00d4ff;
+  --tx:#c8dce8;--tx2:#6a8898;--tx3:#2a4050;
+  --font:'Share Tech Mono',monospace;--title:'Black Ops One',cursive;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;background:var(--bg);color:var(--tx);font-family:var(--font);overflow:hidden;}
+::-webkit-scrollbar{width:4px;} ::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:2px;}
+select option{background:var(--s1);}
+
+/* ── Layout ── */
+.app{height:100vh;display:flex;flex-direction:column;}
+.topbar{padding:.82rem 2rem;border-bottom:1px solid var(--bd);background:var(--s1);flex-shrink:0;display:flex;align-items:center;justify-content:space-between;}
+.body{flex:1;display:grid;grid-template-columns:215px 1fr 280px;min-height:0;}
+
+/* ── Sidebar nav ── */
+.sidebar{background:var(--s1);border-right:1px solid var(--bd);display:flex;flex-direction:column;}
+.sb-logo{padding:1.1rem 1rem .8rem;border-bottom:1px solid var(--bd);}
+.sb-logo .name{font-family:var(--title);font-size:1rem;color:var(--tx);}
+.sb-logo .name span{color:#7c5cff;}
+.sb-logo .sub{font-size:.48rem;color:var(--tx3);margin-top:.15rem;letter-spacing:.1em;text-transform:uppercase;}
+.nav-item{display:flex;align-items:center;gap:.5rem;padding:.5rem 1rem;font-size:.65rem;cursor:pointer;border-left:2px solid transparent;color:var(--tx3);transition:all .13s;}
+.nav-item:hover{color:var(--tx2);background:rgba(0,212,255,.03);}
+.nav-item.active{color:var(--cyan);background:rgba(0,212,255,.06);border-left-color:var(--cyan);}
+.sb-foot{padding:.75rem 1rem;border-top:1px solid var(--bd);margin-top:auto;}
+
+/* ── Map area ── */
+.map-wrap{position:relative;overflow:hidden;background:var(--bg);}
+#mapCanvas{display:block;}
+
+/* ── Grid overlay ── */
+.grid-overlay{position:absolute;inset:0;background-image:linear-gradient(rgba(0,212,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,.04) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;}
+
+/* ── Radar sweep ── */
+.radar-wrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;overflow:hidden;}
+.radar-sweep{width:900px;height:900px;position:relative;flex-shrink:0;}
+.radar-sweep::after{content:'';position:absolute;inset:0;background:conic-gradient(from 0deg,rgba(0,212,255,0),rgba(0,212,255,.12) 60deg,rgba(0,212,255,0) 90deg,transparent 90deg);animation:radarSpin 6s linear infinite;border-radius:50%;}
+
+/* ── Right panel ── */
+.rpanel{background:var(--s1);border-left:1px solid var(--bd);display:flex;flex-direction:column;overflow:hidden;}
+
+/* ── Hotspot rows ── */
+.hs-row{display:flex;align-items:center;gap:.55rem;padding:.52rem .85rem;cursor:pointer;border-bottom:1px solid var(--bd);border-left:2px solid transparent;transition:all .12s;}
+.hs-row:hover{background:rgba(255,255,255,.018);}
+.hs-row.sel{border-left-color:var(--sel-color,var(--red));background:rgba(255,51,51,.06);}
+
+/* ── Tooltip ── */
+.map-tooltip{position:absolute;background:rgba(8,12,18,.95);border:1px solid rgba(0,212,255,.25);border-radius:7px;padding:.55rem .75rem;font-size:.65rem;color:var(--tx);pointer-events:none;z-index:50;display:none;min-width:150px;box-shadow:0 4px 20px rgba(0,0,0,.6);}
+
+/* ── Counter chips ── */
+.chip{text-align:center;padding:.35rem .75rem;background:var(--s2);border:1px solid var(--bd2);border-radius:7px;min-width:72px;}
+.chip-val{font-family:var(--title);font-size:1.15rem;line-height:1;}
+.chip-lbl{font-size:.47rem;color:var(--tx3);letter-spacing:.08em;margin-top:.07rem;}
+
+/* ── Selected detail ── */
+.detail-box{margin:.7rem;background:var(--s2);border:1px solid var(--bd2);border-radius:8px;padding:.8rem;flex-shrink:0;}
+
+@keyframes radarSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{opacity:.9;r:var(--pr,12)}50%{opacity:.4;r:calc(var(--pr,12) * 1.25)}}
+@keyframes outerPulse{0%{opacity:.6;transform:scale(1)}100%{opacity:0;transform:scale(2.5)}}
+@keyframes blip{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+@keyframes scanline{from{top:-10%}to{top:110%}}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- Topbar row with nav sidebar header and page header -->
+<div style="display:flex;flex-shrink:0;border-bottom:1px solid var(--bd);">
+  <!-- Sidebar logo -->
+  <div class="sidebar" style="border-bottom:none;">
+    <div class="sb-logo">
+      <div class="name">📦 Parcel<span>Guard</span></div>
+      <div class="sub">Fraud Detection Platform</div>
+    </div>
+    <nav style="padding:.5rem 0;flex:1;">
+      <div class="nav-item">🏭 Packing Portal</div>
+      <div class="nav-item">🚚 Delivery</div>
+      <div class="nav-item">🛡️ Admin</div>
+      <div class="nav-item">🔍 Inquiries</div>
+      <div class="nav-item">⭐ Trust Scores</div>
+      <div class="nav-item active">🗺️ Fraud Map</div>
+    </nav>
+    <div class="sb-foot">
+      <div style="font-size:.48rem;color:var(--tx3);letter-spacing:.08em;text-transform:uppercase;">API Connected</div>
+      <div style="margin-top:.22rem;font-size:.48rem;color:var(--cyan);display:flex;align-items:center;gap:.3rem;">
+        <span style="width:5px;height:5px;border-radius:50%;background:var(--cyan);display:inline-block;animation:blip 1.5s infinite;"></span> THREAT SCAN ACTIVE
+      </div>
+    </div>
+  </div>
+  <!-- Page header -->
+  <div style="flex:1;display:flex;align-items:center;justify-content:space-between;padding:.82rem 2rem;background:var(--s1);">
+    <div>
+      <div style="font-family:var(--title);font-size:1.6rem;color:var(--tx);letter-spacing:.06em;">🗺️ FRAUD THREAT MAP</div>
+      <div style="font-size:.53rem;color:var(--tx3);margin-top:.1rem;letter-spacing:.1em;text-transform:uppercase;">Geographic Intelligence · Fraud Event Distribution · Risk Zones</div>
+    </div>
+    <div style="display:flex;gap:.65rem;" id="chips"></div>
+  </div>
+</div>
+
+<!-- Body -->
+<div class="body">
+
+  <!-- Sidebar spacer under nav -->
+  <div style="background:var(--s1);border-right:1px solid var(--bd);"></div>
+
+  <!-- Map area -->
+  <div class="map-wrap" id="mapWrap">
+    <div class="grid-overlay"></div>
+    <div class="radar-wrap"><div class="radar-sweep"></div></div>
+    <!-- Scanline -->
+    <div style="position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(0,212,255,.18),transparent);animation:scanline 4s linear infinite;pointer-events:none;z-index:5;"></div>
+    <svg id="mapSvg" style="position:absolute;inset:0;width:100%;height:100%;"></svg>
+    <div class="map-tooltip" id="tooltip"></div>
+  </div>
+
+  <!-- Right panel -->
+  <div class="rpanel">
+    <!-- Filter -->
+    <div style="padding:.62rem .85rem;border-bottom:1px solid var(--bd);flex-shrink:0;">
+      <select id="riskFilter" onchange="applyFilter()" style="width:100%;background:var(--s2);border:1px solid var(--bd2);border-radius:5px;padding:.32rem .5rem;color:var(--tx2);font-size:.6rem;font-family:var(--font);outline:none;cursor:pointer;">
+        <option value="all">All Risk Levels</option>
+        <option value="critical">Critical</option>
+        <option value="high">High</option>
+        <option value="medium">Medium</option>
+        <option value="low">Low</option>
+      </select>
+    </div>
+    <!-- List header -->
+    <div style="padding:.48rem .85rem;border-bottom:1px solid var(--bd);font-size:.5rem;color:var(--tx3);letter-spacing:.1em;text-transform:uppercase;flex-shrink:0;">🔥 Hotspot Rankings</div>
+    <!-- Selected detail -->
+    <div class="detail-box" id="detailBox" style="display:none;"></div>
+    <!-- List -->
+    <div style="flex:1;overflow-y:auto;" id="hsList"></div>
+    <!-- Type breakdown -->
+    <div style="padding:.75rem .85rem;border-top:1px solid var(--bd);flex-shrink:0;">
+      <div style="font-size:.5rem;color:var(--tx3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.55rem;">📊 By Fraud Type</div>
+      <div id="typeBreakdown"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Data ───────────────────────────────────────────────────────────────────────
+const HOTSPOTS = [
+  {id:1, city:'New York, NY',    lat:40.71,lng:-74.01,count:14,risk:'critical'},
+  {id:2, city:'Los Angeles, CA', lat:34.05,lng:-118.24,count:11,risk:'critical'},
+  {id:3, city:'Chicago, IL',     lat:41.88,lng:-87.63, count:9, risk:'high'},
+  {id:4, city:'Miami, FL',       lat:25.77,lng:-80.19, count:8, risk:'high'},
+  {id:5, city:'Houston, TX',     lat:29.76,lng:-95.37, count:7, risk:'high'},
+  {id:6, city:'Newark, NJ',      lat:40.74,lng:-74.17, count:6, risk:'high'},
+  {id:7, city:'Atlanta, GA',     lat:33.75,lng:-84.39, count:5, risk:'medium'},
+  {id:8, city:'Seattle, WA',     lat:47.61,lng:-122.33,count:4, risk:'medium'},
+  {id:9, city:'Phoenix, AZ',     lat:33.45,lng:-112.07,count:4, risk:'medium'},
+  {id:10,city:'Boston, MA',      lat:42.36,lng:-71.06, count:3, risk:'medium'},
+  {id:11,city:'Denver, CO',      lat:39.74,lng:-104.98,count:3, risk:'medium'},
+  {id:12,city:'Dallas, TX',      lat:32.78,lng:-96.80, count:2, risk:'low'},
+  {id:13,city:'Portland, OR',    lat:45.52,lng:-122.68,count:2, risk:'low'},
+  {id:14,city:'Nashville, TN',   lat:36.16,lng:-86.78, count:1, risk:'low'},
+  {id:15,city:'Detroit, MI',     lat:42.33,lng:-83.05, count:1, risk:'low'},
+]
+const RISK_COLORS = {
+  critical:{fill:'#ff3333',stroke:'#ff6666',glow:'rgba(255,51,51,.55)',label:'CRITICAL'},
+  high:    {fill:'#ff8c00',stroke:'#ffaa44',glow:'rgba(255,140,0,.5)', label:'HIGH'},
+  medium:  {fill:'#ffcc00',stroke:'#ffe066',glow:'rgba(255,204,0,.45)',label:'MEDIUM'},
+  low:     {fill:'#00ff88',stroke:'#66ffbb',glow:'rgba(0,255,136,.4)', label:'LOW'},
+}
+const FRAUD_TYPES=[['Courier Fraud',38,'#ff3333'],['Multi-Signal',25,'#ff8c00'],['RFID Mismatch',18,'#ffcc00'],['Weight Fraud',12,'#00d4ff'],['Seller Fraud',7,'#00ff88']]
+
+let selectedId = null
+let filtered = [...HOTSPOTS]
+
+// ── US Simplified SVG path (continental US approximate outline) ──────────────
+// Mercator projection: lat/lng → SVG x/y
+function latLngToXY(lat,lng,w,h){
+  // Continental US: lat 24–49, lng -126 to -66
+  const latMin=24,latMax=49.5,lngMin=-126,lngMax=-64.5
+  const x=((lng-lngMin)/(lngMax-lngMin))*w
+  const y=((latMax-lat)/(latMax-latMin))*h
+  return{x,y}
+}
+
+// Simplified state outlines as polygon arrays [lat,lng] - major shapes only
+const US_STATES=[
+  // Continental US rough boundary
+  [[48.9,-95],[48.5,-93],[47.5,-91],[47.0,-89],[46.8,-84],[45.5,-84],[45.0,-82.5],[42.5,-79.8],[42.0,-80],[42.0,-75.5],[41.3,-72.0],[41.5,-71.5],[41.2,-71.9],[41.1,-69.9],[43.0,-70.5],[44.5,-67.5],[47.5,-70],[47.5,-68],[47.0,-67.8],[46.5,-67.5],[45.5,-67.4],[44.8,-66.9]],
+  [[44.8,-66.9],[43.5,-70.9],[41.2,-72.0],[41.3,-73.5],[40.6,-74.0],[39.5,-75.0],[38.0,-75.5],[37.0,-76.0],[36.8,-76.3],[35.2,-75.5],[34.8,-76.7],[34.0,-77.9],[33.8,-78.5]],
+  [[33.8,-78.5],[30.5,-81.5],[25.2,-80.4],[24.6,-82.0],[27.5,-82.7],[30.0,-85.5],[30.4,-87.2],[30.0,-88.8],[29.8,-89.6],[29.0,-89.5],[29.0,-90.5],[29.5,-91.5],[29.5,-93.8],[29.7,-94.8],[30.2,-93.8]],
+  [[30.2,-93.8],[29.6,-97.5],[26.0,-97.5],[26.0,-99.0],[26.5,-99.5],[27.5,-99.0],[28.0,-100.3],[29.0,-101.5],[29.5,-103.5],[31.8,-106.5],[31.8,-108.2],[31.3,-111.0],[31.3,-114.8]],
+  [[31.3,-114.8],[32.7,-117.1],[33.0,-117.5],[34.0,-120.5],[36.5,-121.9],[37.8,-122.5],[38.5,-123.0],[39.5,-123.8],[41.0,-124.2],[42.0,-124.5],[46.3,-124.0],[47.6,-124.8],[48.4,-124.7],[48.9,-123.1],[49.0,-123.5],[49.0,-118.0],[49.0,-114.5],[49.0,-110.0],[49.0,-104.0],[49.0,-100.0],[49.0,-97.2],[49.0,-95]],
+]
+
+const US_STATES_FILL=[
+  // Interior fill shapes for visual mass
+  [[49,-95],[49,-80],[42,-73],[41,-72],[39,-75],[35,-75],[29.5,-81.5],[24.5,-80],[25,-82],[27,-83],[30,-87],[29.5,-90],[29.5,-94],[26,-98],[26,-100],[29,-104],[31.5,-106],[31.5,-109],[31.5,-115],[32,-117],[34,-120],[38,-123],[42,-124],[48,-124],[49,-123],[49,-110],[49,-95]],
+]
+
+function riskR(count){return Math.max(9,Math.min(36,7+count*2.2))}
+
+// ── Init map ──────────────────────────────────────────────────────────────────
+function initMap(){
+  const wrap=document.getElementById('mapWrap')
+  const svg=document.getElementById('mapSvg')
+  const W=wrap.clientWidth,H=wrap.clientHeight
+
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`)
+
+  // Background fill — slight gradient
+  const defs=document.createElementNS('http://www.w3.org/2000/svg','defs')
+  defs.innerHTML=`
+    <radialGradient id="bgGrad" cx="50%" cy="50%">
+      <stop offset="0%" stop-color="#0a1520"/>
+      <stop offset="100%" stop-color="#04060a"/>
+    </radialGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glow2" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="softglow">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  `
+  svg.appendChild(defs)
+
+  // Ocean BG
+  const bg=document.createElementNS('http://www.w3.org/2000/svg','rect')
+  bg.setAttribute('width',W);bg.setAttribute('height',H);bg.setAttribute('fill','url(#bgGrad)')
+  svg.appendChild(bg)
+
+  // US fill
+  const fillG=document.createElementNS('http://www.w3.org/2000/svg','g')
+  US_STATES_FILL.forEach(poly=>{
+    const pts=poly.map(([lat,lng])=>{const p=latLngToXY(lat,lng,W,H);return`${p.x},${p.y}`}).join(' ')
+    const el=document.createElementNS('http://www.w3.org/2000/svg','polygon')
+    el.setAttribute('points',pts)
+    el.setAttribute('fill','#0d1a26')
+    el.setAttribute('stroke','#162538')
+    el.setAttribute('stroke-width','0.5')
+    fillG.appendChild(el)
+  })
+  svg.appendChild(fillG)
+
+  // US outline segments
+  const outlineG=document.createElementNS('http://www.w3.org/2000/svg','g')
+  US_STATES.forEach(seg=>{
+    if(seg.length<2)return
+    const pts=seg.map(([lat,lng])=>{const p=latLngToXY(lat,lng,W,H);return`${p.x},${p.y}`}).join(' ')
+    const el=document.createElementNS('http://www.w3.org/2000/svg','polyline')
+    el.setAttribute('points',pts)
+    el.setAttribute('fill','none')
+    el.setAttribute('stroke','rgba(0,212,255,.25)')
+    el.setAttribute('stroke-width','1.2')
+    el.setAttribute('stroke-linecap','round')
+    outlineG.appendChild(el)
+  })
+  svg.appendChild(outlineG)
+
+  // State grid lines (latitude/longitude grid)
+  const gridG=document.createElementNS('http://www.w3.org/2000/svg','g')
+  for(let lat=25;lat<=50;lat+=5){
+    const p1=latLngToXY(lat,-126,W,H),p2=latLngToXY(lat,-64,W,H)
+    const line=document.createElementNS('http://www.w3.org/2000/svg','line')
+    line.setAttribute('x1',p1.x);line.setAttribute('y1',p1.y)
+    line.setAttribute('x2',p2.x);line.setAttribute('y2',p2.y)
+    line.setAttribute('stroke','rgba(0,212,255,.05)');line.setAttribute('stroke-width','0.8')
+    gridG.appendChild(line)
+  }
+  for(let lng=-125;lng<=-65;lng+=10){
+    const p1=latLngToXY(24,lng,W,H),p2=latLngToXY(50,lng,W,H)
+    const line=document.createElementNS('http://www.w3.org/2000/svg','line')
+    line.setAttribute('x1',p1.x);line.setAttribute('y1',p1.y)
+    line.setAttribute('x2',p2.x);line.setAttribute('y2',p2.y)
+    line.setAttribute('stroke','rgba(0,212,255,.05)');line.setAttribute('stroke-width','0.8')
+    gridG.appendChild(line)
+  }
+  svg.insertBefore(gridG, fillG)
+
+  renderDots(svg,W,H)
+}
+
+// ── Render hotspot dots ───────────────────────────────────────────────────────
+function renderDots(svg,W,H){
+  // Remove old dots
+  const old=svg.querySelector('#dotsG')
+  if(old)svg.removeChild(old)
+  const dotsG=document.createElementNS('http://www.w3.org/2000/svg','g')
+  dotsG.id='dotsG'
+
+  filtered.forEach((h,idx)=>{
+    const {x,y}=latLngToXY(h.lat,h.lng,W,H)
+    const rc=RISK_COLORS[h.risk]
+    const r=riskR(h.count)
+    const isSelected=selectedId===h.id
+    const g=document.createElementNS('http://www.w3.org/2000/svg','g')
+    g.style.cursor='pointer'
+
+    // Outer ring pulse
+    const outerRing=document.createElementNS('http://www.w3.org/2000/svg','circle')
+    outerRing.setAttribute('cx',x);outerRing.setAttribute('cy',y);outerRing.setAttribute('r',r+4)
+    outerRing.setAttribute('fill','none');outerRing.setAttribute('stroke',rc.fill)
+    outerRing.setAttribute('stroke-width','1');outerRing.setAttribute('opacity','0.3')
+    outerRing.style.animation=`outerPulse ${2+idx*0.3}s ease-out infinite`
+    g.appendChild(outerRing)
+
+    // Glow bg
+    const glowCirc=document.createElementNS('http://www.w3.org/2000/svg','circle')
+    glowCirc.setAttribute('cx',x);glowCirc.setAttribute('cy',y);glowCirc.setAttribute('r',r*1.5)
+    glowCirc.setAttribute('fill',rc.glow);glowCirc.setAttribute('filter','url(#glow2)')
+    g.appendChild(glowCirc)
+
+    // Main circle
+    const circle=document.createElementNS('http://www.w3.org/2000/svg','circle')
+    circle.setAttribute('cx',x);circle.setAttribute('cy',y);circle.setAttribute('r',r)
+    circle.setAttribute('fill',isSelected?rc.fill:`${rc.fill}60`)
+    circle.setAttribute('stroke',rc.stroke);circle.setAttribute('stroke-width',isSelected?'2.5':'1.5')
+    circle.setAttribute('filter','url(#softglow)')
+    g.appendChild(circle)
+
+    // Count label
+    if(h.count>1){
+      const text=document.createElementNS('http://www.w3.org/2000/svg','text')
+      text.setAttribute('x',x);text.setAttribute('y',y+1)
+      text.setAttribute('text-anchor','middle');text.setAttribute('dominant-baseline','middle')
+      text.setAttribute('fill','#fff');text.setAttribute('font-size',r>16?'10':'8')
+      text.setAttribute('font-family','Black Ops One,cursive');text.setAttribute('font-weight','900')
+      text.textContent=h.count
+      g.appendChild(text)
+    }
+
+    // Click and hover
+    g.addEventListener('click',()=>selectHotspot(h.id))
+    g.addEventListener('mouseenter',(e)=>showTooltip(e,h))
+    g.addEventListener('mouseleave',hideTooltip)
+
+    dotsG.appendChild(g)
+  })
+  svg.appendChild(dotsG)
+}
+
+// ── Tooltip ───────────────────────────────────────────────────────────────────
+function showTooltip(e,h){
+  const rc=RISK_COLORS[h.risk]
+  const tt=document.getElementById('tooltip')
+  const wrap=document.getElementById('mapWrap')
+  const rect=wrap.getBoundingClientRect()
+  const {x,y}=latLngToXY(h.lat,h.lng,wrap.clientWidth,wrap.clientHeight)
+  tt.innerHTML=`
+    <div style="font-family:'Black Ops One',cursive;font-size:.85rem;color:${rc.fill};margin-bottom:.25rem;">${h.city}</div>
+    <div style="color:var(--tx2);font-size:.62rem;margin-bottom:.18rem;">${h.count} fraud events detected</div>
+    <div style="display:inline-block;background:${rc.fill}20;border:1px solid ${rc.fill}40;border-radius:3px;padding:.1rem .4rem;font-size:.52rem;color:${rc.fill};letter-spacing:.06em;">${rc.label} RISK</div>
+  `
+  tt.style.left=`${x+12}px`
+  tt.style.top=`${Math.max(10,y-40)}px`
+  tt.style.display='block'
+}
+function hideTooltip(){document.getElementById('tooltip').style.display='none'}
+
+// ── Selection ─────────────────────────────────────────────────────────────────
+function selectHotspot(id){
+  selectedId=selectedId===id?null:id
+  const wrap=document.getElementById('mapWrap')
+  renderDots(document.getElementById('mapSvg'),wrap.clientWidth,wrap.clientHeight)
+  renderList()
+  renderDetail()
+}
+
+// ── Filter ────────────────────────────────────────────────────────────────────
+function applyFilter(){
+  const val=document.getElementById('riskFilter').value
+  filtered=val==='all'?[...HOTSPOTS]:HOTSPOTS.filter(h=>h.risk===val)
+  const wrap=document.getElementById('mapWrap')
+  renderDots(document.getElementById('mapSvg'),wrap.clientWidth,wrap.clientHeight)
+  renderList()
+}
+
+// ── Render list ───────────────────────────────────────────────────────────────
+function renderList(){
+  const sorted=[...filtered].sort((a,b)=>b.count-a.count)
+  document.getElementById('hsList').innerHTML=sorted.map((h,i)=>{
+    const rc=RISK_COLORS[h.risk]
+    const isSel=selectedId===h.id
+    return`<div class="hs-row ${isSel?'sel':''}" style="--sel-color:${rc.fill};${isSel?`background:${rc.fill}10;border-left-color:${rc.fill};`:''}" onclick="selectHotspot(${h.id})">
+      <div style="font-family:'Black Ops One',cursive;font-size:.82rem;color:${i<3?rc.fill:'var(--tx3)'};width:17px;text-align:center;flex-shrink:0;">${i+1}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:.67rem;color:var(--tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${h.city}</div>
+        <div style="font-size:.54rem;color:var(--tx3);margin-top:.08rem;"><span style="color:${rc.fill}">${rc.label}</span> · ${h.count} events</div>
+      </div>
+      <div style="font-family:'Black Ops One',cursive;font-size:1.05rem;color:${rc.fill};text-shadow:0 0 8px ${rc.glow};flex-shrink:0;">${h.count}</div>
+    </div>`
+  }).join('')
+}
+
+// ── Selected detail ────────────────────────────────────────────────────────────
+function renderDetail(){
+  const box=document.getElementById('detailBox')
+  const h=HOTSPOTS.find(x=>x.id===selectedId)
+  if(!h){box.style.display='none';return}
+  const rc=RISK_COLORS[h.risk]
+  const pct=(h.count/14*100).toFixed(0)
+  box.style.display='block'
+  box.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.55rem;">
+      <div>
+        <div style="font-size:.5rem;color:var(--tx3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.18rem;">SELECTED ZONE</div>
+        <div style="font-family:'Black Ops One',cursive;font-size:.95rem;color:${rc.fill};">${h.city}</div>
+      </div>
+      <span style="background:${rc.fill}18;border:1px solid ${rc.fill}35;color:${rc.fill};font-size:.5rem;padding:.12rem .45rem;border-radius:3px;letter-spacing:.06em;">${rc.label}</span>
+    </div>
+    <div style="height:4px;background:var(--bd2);border-radius:2px;overflow:hidden;margin-bottom:.55rem;">
+      <div style="height:100%;width:${pct}%;background:${rc.fill};border-radius:2px;transition:width .6s;"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.45rem;font-size:.6rem;">
+      <div style="background:var(--bd2);border-radius:5px;padding:.4rem .55rem;">
+        <div style="color:var(--tx3);font-size:.5rem;margin-bottom:.1rem;">Events</div>
+        <div style="font-family:'Black Ops One',cursive;font-size:1.1rem;color:${rc.fill};">${h.count}</div>
+      </div>
+      <div style="background:var(--bd2);border-radius:5px;padding:.4rem .55rem;">
+        <div style="color:var(--tx3);font-size:.5rem;margin-bottom:.1rem;">Threat Share</div>
+        <div style="font-family:'Black Ops One',cursive;font-size:1.1rem;color:${rc.fill};">${pct}%</div>
+      </div>
+    </div>
+  `
+}
+
+// ── Type breakdown ────────────────────────────────────────────────────────────
+function renderTypeBreakdown(){
+  document.getElementById('typeBreakdown').innerHTML=FRAUD_TYPES.map(([l,p,c])=>`
+    <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.32rem;">
+      <div style="width:76px;font-size:.56rem;color:var(--tx2);flex-shrink:0;">${l}</div>
+      <div style="flex:1;height:4px;background:var(--bd2);border-radius:2px;overflow:hidden;">
+        <div style="height:100%;width:${p}%;background:${c};border-radius:2px;"></div>
+      </div>
+      <div style="font-size:.56px;color:${c};width:24px;text-align:right;font-size:.56rem;">${p}%</div>
+    </div>
+  `).join('')
+}
+
+// ── Chips ────────────────────────────────────────────────────────────────────
+function renderChips(){
+  const total=HOTSPOTS.reduce((s,h)=>s+h.count,0)
+  const crit=HOTSPOTS.filter(h=>h.risk==='critical').length
+  document.getElementById('chips').innerHTML=[
+    ['TOTAL EVENTS',total,'#ff3333'],
+    ['CRITICAL ZONES',crit,'#ff8c00'],
+    ['CITIES HIT',HOTSPOTS.length,'#00d4ff'],
+  ].map(([l,v,c])=>`<div class="chip"><div class="chip-val" style="color:${c}">${v}</div><div class="chip-lbl">${l}</div></div>`).join('')
+}
+
+// ── Resize ────────────────────────────────────────────────────────────────────
+let resizeTimer
+window.addEventListener('resize',()=>{
+  clearTimeout(resizeTimer)
+  resizeTimer=setTimeout(()=>{
+    const svg=document.getElementById('mapSvg')
+    while(svg.firstChild)svg.removeChild(svg.firstChild)
+    initMap()
+  },200)
+})
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+renderChips()
+renderTypeBreakdown()
+renderList()
+renderDetail()
+setTimeout(initMap,50)
+</script>
+</body>
+</html>

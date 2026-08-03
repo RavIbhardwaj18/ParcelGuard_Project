@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ParcelGuard – System Architecture</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap');
+
+  :root {
+    --bg: #080c14;
+    --surface: #0d1520;
+    --surface2: #111d2e;
+    --border: #1a2d45;
+    --accent: #00d4ff;
+    --accent2: #ff4d6d;
+    --accent3: #39ff14;
+    --accent4: #f5a623;
+    --text: #e2eaf4;
+    --muted: #4a6380;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Animated grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  header {
+    position: relative;
+    z-index: 10;
+    padding: 2.5rem 3rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .logo-badge {
+    width: 52px; height: 52px;
+    background: linear-gradient(135deg, var(--accent), #0077aa);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem;
+    box-shadow: 0 0 24px rgba(0,212,255,0.4);
+    flex-shrink: 0;
+  }
+
+  header h1 {
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+  header h1 span { color: var(--accent); }
+  header p {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--muted);
+    margin-top: 0.2rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .step-badge {
+    margin-left: auto;
+    background: rgba(0,212,255,0.1);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    padding: 0.4rem 0.9rem;
+    border-radius: 4px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .canvas {
+    position: relative;
+    z-index: 10;
+    padding: 2rem 3rem 3rem;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  /* ── LAYERS ── */
+  .layer {
+    margin-bottom: 1.2rem;
+  }
+
+  .layer-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    margin-bottom: 0.6rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .layer-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .boxes {
+    display: flex;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+  }
+
+  /* Box card */
+  .box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem 1.1rem;
+    flex: 1;
+    min-width: 160px;
+    position: relative;
+    overflow: hidden;
+    cursor: default;
+    transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+  }
+  .box::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--box-color, var(--accent));
+    opacity: 0.7;
+  }
+  .box:hover {
+    transform: translateY(-3px);
+    border-color: var(--box-color, var(--accent));
+    box-shadow: 0 8px 30px rgba(0,0,0,0.4), 0 0 20px color-mix(in srgb, var(--box-color, var(--accent)) 15%, transparent);
+  }
+
+  .box-icon { font-size: 1.3rem; margin-bottom: 0.4rem; }
+  .box-title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin-bottom: 0.25rem;
+  }
+  .box-sub {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.58rem;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  .box-tag {
+    display: inline-block;
+    margin-top: 0.5rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.5rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.15rem 0.5rem;
+    border-radius: 3px;
+    background: color-mix(in srgb, var(--box-color, var(--accent)) 12%, transparent);
+    color: var(--box-color, var(--accent));
+    border: 1px solid color-mix(in srgb, var(--box-color, var(--accent)) 30%, transparent);
+  }
+
+  /* Colour themes per box */
+  .blue  { --box-color: #00d4ff; }
+  .red   { --box-color: #ff4d6d; }
+  .green { --box-color: #39ff14; }
+  .gold  { --box-color: #f5a623; }
+  .purple{ --box-color: #b97fff; }
+  .teal  { --box-color: #00ffc8; }
+  .pink  { --box-color: #ff6eb4; }
+
+  /* ── ARROWS ── */
+  .arrow-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 2rem;
+    margin: 0.4rem 0;
+    flex-wrap: wrap;
+  }
+  .arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+  }
+  .arrow-line {
+    width: 2px;
+    height: 32px;
+    background: linear-gradient(to bottom, transparent, var(--arrow-col, var(--muted)), transparent);
+    position: relative;
+  }
+  .arrow-line::after {
+    content: '▼';
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.55rem;
+    color: var(--arrow-col, var(--muted));
+  }
+  .arrow-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.5rem;
+    color: var(--arrow-col, var(--muted));
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* ── DATA FLOW LEGEND ── */
+  .flow-section {
+    margin-top: 2.5rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+
+  .flow-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.4rem;
+  }
+  .flow-card h3 {
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .flow-card h3 .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--card-accent, var(--accent));
+    box-shadow: 0 0 8px var(--card-accent, var(--accent));
+  }
+
+  .flow-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.8rem;
+    margin-bottom: 0.7rem;
+  }
+  .flow-num {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--card-accent, var(--accent)) 15%, transparent);
+    border: 1px solid color-mix(in srgb, var(--card-accent, var(--accent)) 40%, transparent);
+    color: var(--card-accent, var(--accent));
+    font-family: 'Space Mono', monospace;
+    font-size: 0.55rem;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .flow-text {
+    font-size: 0.72rem;
+    line-height: 1.55;
+    color: #a0b4c8;
+  }
+  .flow-text strong { color: var(--text); font-weight: 600; }
+
+  /* ── TECH STACK ── */
+  .tech-bar {
+    margin-top: 2rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.4rem;
+  }
+  .tech-bar h3 {
+    font-size: 0.85rem; font-weight: 700;
+    margin-bottom: 1rem;
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+  .tech-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+  .pill {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.4rem 0.9rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.62rem;
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+  .pill .dot { width: 6px; height: 6px; border-radius: 50%; }
+
+  /* Pulse animation for "live" indicators */
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+  .live { animation: pulse 2s ease-in-out infinite; }
+
+  /* ── KEY ARCHITECTURE DECISIONS ── */
+  .decisions {
+    margin-top: 1.5rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.4rem;
+  }
+  .decision-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  .decision-item {
+    border-left: 2px solid var(--item-color, var(--accent));
+    padding-left: 0.8rem;
+  }
+  .decision-item .di-title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--item-color, var(--accent));
+    margin-bottom: 0.25rem;
+  }
+  .decision-item .di-body {
+    font-size: 0.65rem;
+    color: var(--muted);
+    line-height: 1.5;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .section-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .section-title .icon { font-size: 0.9rem; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-badge">📦</div>
+  <div>
+    <h1>Parcel<span>Guard</span></h1>
+    <p>AI-Powered Supply Chain Fraud Detection · System Architecture</p>
+  </div>
+  <div class="step-badge">Step 01 / 14 · Architecture</div>
+</header>
+
+<div class="canvas">
+
+  <!-- ── LAYER 1: FRONTENDS ── -->
+  <div class="layer">
+    <div class="layer-label">Layer 1 — Frontend Clients</div>
+    <div class="boxes">
+
+      <div class="box blue" style="max-width:200px;">
+        <div class="box-icon">🏭</div>
+        <div class="box-title">Packing Portal</div>
+        <div class="box-sub">Warehouse staff log parcel data, upload X-ray scans, RFID, weight, dimensions</div>
+        <div class="box-tag">React App · Port 3000</div>
+      </div>
+
+      <div class="box teal" style="max-width:200px;">
+        <div class="box-icon">🚚</div>
+        <div class="box-title">Delivery Verification</div>
+        <div class="box-sub">Courier agents verify delivery, upload parcel photos at handoff points</div>
+        <div class="box-tag">React App · Port 3000</div>
+      </div>
+
+      <div class="box gold" style="max-width:200px;">
+        <div class="box-icon">🌐</div>
+        <div class="box-title">Customer Portal</div>
+        <div class="box-sub">SEPARATE website. Customers upload unboxing photos/videos. Public-facing</div>
+        <div class="box-tag">React App · Port 3001 ★ Separate</div>
+      </div>
+
+      <div class="box purple" style="max-width:200px;">
+        <div class="box-icon">🛡️</div>
+        <div class="box-title">Admin Dashboard</div>
+        <div class="box-sub">Full system view, fraud alerts, trust scores, heatmap, inquiry management</div>
+        <div class="box-tag">React App · Port 3000</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ARROW DOWN -->
+  <div class="arrow-row">
+    <div class="arrow">
+      <div class="arrow-label">REST API / JSON</div>
+      <div class="arrow-line" style="--arrow-col:#00d4ff; height:28px;"></div>
+    </div>
+    <div class="arrow">
+      <div class="arrow-label">Public API (CORS)</div>
+      <div class="arrow-line" style="--arrow-col:#f5a623; height:28px;"></div>
+    </div>
+    <div class="arrow">
+      <div class="arrow-label">WebSocket Alerts</div>
+      <div class="arrow-line" style="--arrow-col:#b97fff; height:28px;"></div>
+    </div>
+  </div>
+
+  <!-- ── LAYER 2: API GATEWAY ── -->
+  <div class="layer">
+    <div class="layer-label">Layer 2 — API Gateway (FastAPI · Port 8000)</div>
+    <div class="boxes">
+
+      <div class="box blue">
+        <div class="box-icon">📬</div>
+        <div class="box-title">Parcel Router</div>
+        <div class="box-sub">/api/parcels · CRUD for parcel lifecycle. Packing → Transit → Delivered</div>
+        <div class="box-tag">Module: parcels</div>
+      </div>
+
+      <div class="box teal">
+        <div class="box-icon">✅</div>
+        <div class="box-title">Verification Router</div>
+        <div class="box-sub">/api/verify · Delivery checkpoints. Logs courier scans & timestamps</div>
+        <div class="box-tag">Module: verification</div>
+      </div>
+
+      <div class="box gold">
+        <div class="box-icon">📸</div>
+        <div class="box-title">Customer Router</div>
+        <div class="box-sub">/api/customer · Image/video uploads from public portal. CORS-open endpoint</div>
+        <div class="box-tag">Module: customer</div>
+      </div>
+
+      <div class="box red">
+        <div class="box-icon">🚨</div>
+        <div class="box-title">Fraud Router</div>
+        <div class="box-sub">/api/fraud · Triggers AI engine. Returns fraud scores + evidence chain</div>
+        <div class="box-tag">Module: fraud</div>
+      </div>
+
+      <div class="box purple">
+        <div class="box-icon">🔍</div>
+        <div class="box-title">Inquiry Router</div>
+        <div class="box-sub">/api/inquiry · Case management. Assign investigators, track resolution</div>
+        <div class="box-tag">Module: inquiry</div>
+      </div>
+
+      <div class="box green">
+        <div class="box-icon">⭐</div>
+        <div class="box-title">Trust Score Router</div>
+        <div class="box-sub">/api/trust · Seller & courier score history. Penalty/reward events</div>
+        <div class="box-tag">Module: trust</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ARROW DOWN -->
+  <div class="arrow-row">
+    <div class="arrow">
+      <div class="arrow-label">SQLAlchemy ORM</div>
+      <div class="arrow-line" style="--arrow-col:#39ff14; height:28px;"></div>
+    </div>
+    <div class="arrow">
+      <div class="arrow-label">File I/O · Uploads</div>
+      <div class="arrow-line" style="--arrow-col:#00d4ff; height:28px;"></div>
+    </div>
+    <div class="arrow">
+      <div class="arrow-label">AI Pipeline Call</div>
+      <div class="arrow-line" style="--arrow-col:#ff4d6d; height:28px;"></div>
+    </div>
+  </div>
+
+  <!-- ── LAYER 3: SERVICES ── -->
+  <div class="layer">
+    <div class="layer-label">Layer 3 — Core Services</div>
+    <div class="boxes">
+
+      <div class="box red" style="flex:2; min-width:280px;">
+        <div class="box-icon">🤖</div>
+        <div class="box-title">AI Fraud Detection Engine</div>
+        <div class="box-sub">
+          Two-stage pipeline:<br/>
+          1. <strong>Image Comparison</strong> – ResNet50 embeddings via PyTorch. Compares packing photo vs delivery photo vs customer photo. Cosine similarity score.<br/>
+          2. <strong>Rule Engine</strong> – Weight Δ, dimension Δ, RFID mismatch, image anomaly score → weighted fraud score 0–100
+        </div>
+        <div class="box-tag">PyTorch · OpenCV · scikit-learn</div>
+      </div>
+
+      <div class="box green" style="flex:1.5; min-width:220px;">
+        <div class="box-icon">⭐</div>
+        <div class="box-title">Trust Score Engine</div>
+        <div class="box-sub">
+          Bayesian-style rolling score per seller/courier. Fraud events decay score. Clean deliveries restore it. Threshold triggers auto-flag
+        </div>
+        <div class="box-tag">Python · NumPy</div>
+      </div>
+
+      <div class="box gold" style="flex:1; min-width:180px;">
+        <div class="box-icon">🗺️</div>
+        <div class="box-title">Heatmap Service</div>
+        <div class="box-sub">
+          Aggregates fraud events by geolocation. Outputs GeoJSON for Leaflet.js heatmap layer
+        </div>
+        <div class="box-tag">GeoJSON · Leaflet.js</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ARROW DOWN -->
+  <div class="arrow-row">
+    <div class="arrow">
+      <div class="arrow-label">Read / Write</div>
+      <div class="arrow-line" style="--arrow-col:#4a6380; height:24px;"></div>
+    </div>
+    <div class="arrow">
+      <div class="arrow-label">Binary Files</div>
+      <div class="arrow-line" style="--arrow-col:#4a6380; height:24px;"></div>
+    </div>
+  </div>
+
+  <!-- ── LAYER 4: DATA ── -->
+  <div class="layer">
+    <div class="layer-label">Layer 4 — Data Layer</div>
+    <div class="boxes">
+
+      <div class="box blue" style="flex:2;">
+        <div class="box-icon">🗄️</div>
+        <div class="box-title">PostgreSQL Database</div>
+        <div class="box-sub">
+          Tables: parcels · sellers · couriers · checkpoints · fraud_events · inquiries · trust_scores · customers
+        </div>
+        <div class="box-tag">PostgreSQL 15 · Port 5432</div>
+      </div>
+
+      <div class="box teal" style="flex:1;">
+        <div class="box-icon">📁</div>
+        <div class="box-title">File Store</div>
+        <div class="box-sub">
+          Local uploads/ directory (hackathon). X-ray images, parcel photos, customer videos
+        </div>
+        <div class="box-tag">Local FS → S3 in prod</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── DATA FLOW CARDS ── -->
+  <div class="flow-section">
+
+    <div class="flow-card" style="--card-accent: #00d4ff;">
+      <h3><div class="dot"></div> Fraud Detection Flow</h3>
+      <div class="flow-step">
+        <div class="flow-num">1</div>
+        <div class="flow-text"><strong>Warehouse</strong> packs parcel → logs weight, dims, RFID, X-ray image → parcel gets UUID</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">2</div>
+        <div class="flow-text"><strong>Courier</strong> picks up → scans RFID → uploads parcel photo at each checkpoint</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">3</div>
+        <div class="flow-text"><strong>Customer</strong> receives → visits customer portal → uploads unboxing photo/video</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">4</div>
+        <div class="flow-text"><strong>AI Engine</strong> runs: image comparison + weight/dim delta + RFID check → <strong>fraud score computed</strong></div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">5</div>
+        <div class="flow-text"><strong>System pinpoints</strong>: if discrepancy between packing ↔ courier checkpoint → <em>courier fraud</em>. If packing ↔ customer photo → <em>seller fraud</em></div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">6</div>
+        <div class="flow-text"><strong>Trust scores updated</strong>. If score &gt; threshold → auto-inquiry opened</div>
+      </div>
+    </div>
+
+    <div class="flow-card" style="--card-accent: #ff4d6d;">
+      <h3><div class="dot"></div> Fraud Attribution Logic</h3>
+      <div class="flow-step">
+        <div class="flow-num">A</div>
+        <div class="flow-text"><strong>Seller Fraud:</strong> Packed item image ≠ customer received image <em>but</em> courier checkpoints show no tampering → seller packed wrong/fake item</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">B</div>
+        <div class="flow-text"><strong>Courier Fraud:</strong> Packed item matches packing photo ✓ but courier checkpoint photo ≠ packing photo → item tampered in transit</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">C</div>
+        <div class="flow-text"><strong>Weight/Dim Fraud:</strong> Declared weight at packing ≠ courier scan weight → possible content swap or label fraud</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">D</div>
+        <div class="flow-text"><strong>RFID Mismatch:</strong> RFID tag at delivery ≠ tag logged at packing → parcel substitution attack</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">E</div>
+        <div class="flow-text"><strong>Combined Signal:</strong> Fraud score = weighted sum of all signals. Each signal contributes evidence to the inquiry case</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── TECH STACK ── -->
+  <div class="tech-bar">
+    <h3 class="section-title"><span class="icon">⚙️</span> Tech Stack</h3>
+    <div class="tech-pills">
+      <div class="pill"><div class="dot" style="background:#61dafb;"></div>React 18</div>
+      <div class="pill"><div class="dot" style="background:#38bdf8;"></div>Tailwind CSS</div>
+      <div class="pill"><div class="dot" style="background:#009688;"></div>FastAPI</div>
+      <div class="pill"><div class="dot" style="background:#336791;"></div>PostgreSQL 15</div>
+      <div class="pill"><div class="dot" style="background:#ee4c2c;"></div>PyTorch (ResNet50)</div>
+      <div class="pill"><div class="dot" style="background:#5c8a00;"></div>OpenCV</div>
+      <div class="pill"><div class="dot" style="background:#f38020;"></div>SQLAlchemy</div>
+      <div class="pill"><div class="dot" style="background:#4db33d;"></div>Alembic (migrations)</div>
+      <div class="pill"><div class="dot" style="background:#21a366;"></div>Leaflet.js</div>
+      <div class="pill"><div class="dot" style="background:#f5a623;"></div>Axios (HTTP)</div>
+      <div class="pill"><div class="dot" style="background:#b97fff;"></div>WebSocket (alerts)</div>
+      <div class="pill"><div class="dot" style="background:#ff6eb4;"></div>Docker Compose</div>
+    </div>
+  </div>
+
+  <!-- ── KEY DECISIONS ── -->
+  <div class="decisions">
+    <h3 class="section-title"><span class="icon">🧠</span> Key Architecture Decisions</h3>
+    <div class="decision-grid">
+      <div class="decision-item" style="--item-color:#00d4ff;">
+        <div class="di-title">Monolith-First API</div>
+        <div class="di-body">Single FastAPI app with clear module separation. Routes split by domain. Easy to demo, easy to scale later into microservices.</div>
+      </div>
+      <div class="decision-item" style="--item-color:#f5a623;">
+        <div class="di-title">Customer Portal = Separate App</div>
+        <div class="di-body">Port 3001, different origin. Communicates via public REST API with CORS headers. Simulates real-world B2C surface.</div>
+      </div>
+      <div class="decision-item" style="--item-color:#39ff14;">
+        <div class="di-title">ResNet50 Embeddings</div>
+        <div class="di-body">Pre-trained on ImageNet. Extract 2048-dim feature vectors. Cosine similarity for image comparison. No training needed → hackathon fast.</div>
+      </div>
+      <div class="decision-item" style="--item-color:#ff4d6d;">
+        <div class="di-title">Weighted Fraud Score</div>
+        <div class="di-body">Image delta 40% + weight delta 25% + RFID match 20% + dimension delta 15%. Score 0–100. Thresholds: &gt;70 = High Risk.</div>
+      </div>
+      <div class="decision-item" style="--item-color:#b97fff;">
+        <div class="di-title">UUID Parcel Tracking</div>
+        <div class="di-body">Each parcel gets UUID at packing. RFID maps to UUID. QR code on parcel links customer portal to specific parcel record.</div>
+      </div>
+      <div class="decision-item" style="--item-color:#00ffc8;">
+        <div class="di-title">Local File Store (Hackathon)</div>
+        <div class="di-body">Images stored in uploads/ directory. Path stored in DB. Production-ready swap to S3 with one config change.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

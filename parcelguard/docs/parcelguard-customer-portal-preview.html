@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>ParcelGuard – Customer Portal</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&family=DM+Sans:wght@300;400;500;600&display=swap');
+:root{
+  --cream:#faf8f4;--parchment:#f2ede3;--sand:#e8dfc8;
+  --gold:#c6914a;--gold-l:#e8b870;--gold-d:#7a5c1e;
+  --ink:#1a1612;--ink-l:#4a3f32;--ink-f:#8a7a68;
+  --navy:#1e2a42;
+  --ok:#2d7a4e;--warn:#b07a1a;--danger:#9b2a2a;
+  --ok-bg:#edf7f0;--warn-bg:#fdf6e3;--danger-bg:#fdf0f0;
+  --serif:'Fraunces',serif;--sans:'DM Sans',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--cream);color:var(--ink);font-family:var(--sans);min-height:100vh;}
+::selection{background:rgba(198,145,74,.2);color:var(--gold-d);}
+::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-thumb{background:var(--sand);border-radius:3px;}
+input,textarea,select{font-family:var(--sans);font-size:.85rem;}
+input::placeholder,textarea::placeholder{color:#b0a090;}
+
+/* ── Nav ── */
+nav{position:sticky;top:0;z-index:100;background:rgba(250,248,244,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--sand);padding:.9rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+.logo{display:flex;align-items:center;gap:.5rem;}
+.logo-name{font-family:var(--serif);font-size:1.05rem;font-weight:600;color:var(--ink);}
+.logo-name span{color:var(--gold);}
+.logo-tag{font-size:.6rem;color:var(--ink-f);margin-left:.6rem;letter-spacing:.06em;text-transform:uppercase;}
+.nav-status{font-size:.72rem;color:var(--ink-f);display:flex;align-items:center;gap:.4rem;}
+.status-dot{width:6px;height:6px;border-radius:50%;background:var(--ok);}
+
+/* ── Hero ── */
+.hero{background:linear-gradient(135deg,var(--navy) 0%,#2a3a5a 60%,#1e3050 100%);padding:4rem 2rem 5rem;text-align:center;position:relative;overflow:hidden;}
+.hero-ring{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);border-radius:50%;border:1px solid rgba(198,145,74,.07);pointer-events:none;}
+.hero-chip{display:inline-block;font-size:.63rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-l);margin-bottom:1rem;background:rgba(198,145,74,.1);padding:.3rem .85rem;border-radius:20px;border:1px solid rgba(198,145,74,.2);}
+.hero h1{font-family:var(--serif);font-size:clamp(1.8rem,4vw,2.8rem);font-weight:300;color:#f5f0e8;letter-spacing:-.02em;line-height:1.2;margin-bottom:.9rem;}
+.hero h1 em{font-weight:600;color:var(--gold-l);}
+.hero p{font-size:.9rem;color:rgba(255,255,255,.55);max-width:420px;margin:0 auto;line-height:1.7;}
+
+/* ── Card ── */
+.card{background:#fff;border-radius:16px;padding:2.5rem;box-shadow:0 4px 40px rgba(26,22,18,.08),0 1px 4px rgba(26,22,18,.04);border:1px solid var(--sand);}
+.main-card{max-width:620px;margin:-3rem auto 0;padding:0 1.5rem;}
+
+/* ── Progress ── */
+.progress{display:flex;align-items:center;margin-bottom:2.5rem;}
+.p-step{display:flex;flex-direction:column;align-items:center;gap:.35rem;}
+.p-dot{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;transition:all .3s;}
+.p-dot.done{background:var(--gold);color:#fff;}
+.p-dot.active{background:var(--ink);color:#fff;border:2px solid var(--gold);box-shadow:0 0 0 4px rgba(232,184,112,.25);}
+.p-dot.idle{background:var(--sand);color:var(--ink-f);}
+.p-label{font-size:.6rem;font-weight:500;white-space:nowrap;}
+.p-label.active{color:var(--ink);font-weight:600;}
+.p-label.done{color:var(--gold);}
+.p-label.idle{color:var(--ink-f);}
+.p-line{flex:1;height:2px;margin:0 .5rem;margin-bottom:1.2rem;transition:background .3s;}
+
+/* ── Form elements ── */
+.f-label{display:block;font-size:.75rem;font-weight:600;color:var(--ink-l);margin-bottom:.35rem;}
+.f-input{width:100%;padding:.7rem 1rem;background:#fff;border:1.5px solid var(--sand);border-radius:8px;font-size:.85rem;font-family:var(--sans);color:var(--ink);outline:none;transition:all .2s;box-sizing:border-box;}
+.f-input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(232,184,112,.25);}
+.field{margin-bottom:1.2rem;}
+.hint{font-size:.65rem;color:var(--ink-f);margin-top:.3rem;}
+
+/* ── Buttons ── */
+.btn-primary{padding:.78rem 1.8rem;background:var(--gold);color:#fff;border:none;border-radius:8px;font-size:.85rem;font-weight:600;font-family:var(--sans);cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:.5rem;box-shadow:0 2px 12px rgba(198,145,74,.3);}
+.btn-primary:hover{background:var(--gold-d);}
+.btn-primary:disabled{background:var(--sand);color:var(--ink-f);cursor:not-allowed;box-shadow:none;}
+.btn-ghost{background:none;border:1px solid var(--sand);border-radius:8px;padding:.55rem 1.2rem;font-size:.78rem;color:var(--ink-f);cursor:pointer;font-family:var(--sans);transition:all .2s;}
+.btn-ghost:hover{border-color:var(--gold);color:var(--ink);}
+.btn-back{background:none;border:none;color:var(--ink-f);font-size:.78rem;cursor:pointer;padding:0;display:flex;align-items:center;gap:.3rem;margin-bottom:1.5rem;}
+
+/* ── Parcel result box ── */
+.parcel-box{background:#fff;border:1.5px solid var(--sand);border-radius:12px;padding:1.4rem;margin-bottom:1.4rem;animation:fadeUp .3s ease;}
+.parcel-box.high-risk{border-color:rgba(155,42,42,.3);}
+.status-pill{display:inline-flex;align-items:center;gap:.4rem;padding:.3rem .8rem;border-radius:20px;font-size:.72rem;font-weight:600;}
+.parcel-meta{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-top:1rem;padding-top:1rem;border-top:1px solid var(--sand);}
+.meta-item .meta-l{font-size:.62rem;color:var(--ink-f);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.2rem;}
+.meta-item .meta-v{font-size:.82rem;color:var(--ink);font-weight:500;}
+.attention-bar{margin-top:1rem;padding:.7rem 1rem;background:linear-gradient(135deg,#fff8ed,#fff3e0);border:1px solid rgba(198,145,74,.35);border-radius:8px;font-size:.78rem;color:var(--warn);line-height:1.6;}
+
+/* ── Drop zone ── */
+.drop-zone{border:2px dashed var(--sand);border-radius:14px;padding:2rem;cursor:pointer;text-align:center;transition:all .2s;min-height:190px;display:flex;align-items:center;justify-content:center;background:#fff;}
+.drop-zone:hover,.drop-zone.drag{border-color:var(--gold);background:#fffdf8;}
+.drop-zone.filled{border-style:solid;border-color:rgba(198,145,74,.5);background:#fffdf8;}
+.dz-icon{font-size:2.3rem;margin-bottom:.75rem;}
+.dz-title{font-family:var(--serif);font-size:1.05rem;color:var(--ink-l);margin-bottom:.35rem;}
+.dz-sub{font-size:.75rem;color:var(--ink-f);line-height:1.6;}
+
+/* ── Tips box ── */
+.tips-box{padding:1rem 1.2rem;background:var(--parchment);border:1px solid var(--sand);border-radius:10px;font-size:.78rem;color:var(--ink-l);line-height:1.8;margin-bottom:1.4rem;}
+.tips-box ul{padding-left:1.2rem;margin-top:.4rem;}
+
+/* ── Result card ── */
+.result-header{text-align:center;padding:1.5rem;border-radius:14px;margin-bottom:1.4rem;}
+.result-icon{font-size:3rem;margin-bottom:1rem;}
+.result-title{font-family:var(--serif);font-size:1.6rem;font-weight:600;letter-spacing:-.02em;margin-bottom:.6rem;}
+.result-body{font-size:.88rem;color:var(--ink-l);line-height:1.7;max-width:440px;margin:0 auto 1.2rem;}
+.result-meta{display:flex;justify-content:center;gap:1.5rem;flex-wrap:wrap;font-size:.73rem;color:var(--ink-f);}
+.result-meta strong{color:var(--ink);}
+
+/* ── Claim ID ── */
+.claim-card{background:#fff;border:1.5px solid var(--sand);border-radius:12px;padding:1.2rem 1.4rem;margin-bottom:1.4rem;display:flex;align-items:center;justify-content:space-between;}
+.claim-num{font-family:var(--serif);font-size:1.35rem;font-weight:600;color:var(--ink);letter-spacing:.04em;}
+
+/* ── What next ── */
+.next-card{background:var(--parchment);border:1px solid var(--sand);border-radius:12px;padding:1.2rem 1.4rem;margin-bottom:1.4rem;}
+.next-item{display:flex;gap:.75rem;align-items:flex-start;margin-bottom:.75rem;}
+.next-item:last-child{margin-bottom:0;}
+.next-icon{font-size:1.05rem;flex-shrink:0;}
+.next-title{font-size:.8rem;font-weight:600;color:var(--ink);margin-bottom:.15rem;}
+.next-desc{font-size:.73rem;color:var(--ink-f);line-height:1.5;}
+
+/* ── Footer ── */
+footer{border-top:1px solid var(--sand);padding:1.4rem 2rem;display:flex;justify-content:space-between;align-items:center;font-size:.7rem;color:var(--ink-f);margin-top:3rem;}
+
+/* ── Spinner ── */
+.spin{width:13px;height:13px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:rotate .7s linear infinite;display:inline-block;}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes rotate{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav>
+  <div class="logo">
+    <span style="font-size:1.3rem">📦</span>
+    <div>
+      <span class="logo-name">Parcel<span>Guard</span></span>
+      <span class="logo-tag">Customer Portal</span>
+    </div>
+  </div>
+  <div class="nav-status">
+    <span class="status-dot"></span>
+    All systems operational
+  </div>
+</nav>
+
+<!-- Hero (visible on step 1) -->
+<div class="hero" id="hero">
+  <div class="hero-ring" style="width:180px;height:180px;"></div>
+  <div class="hero-ring" style="width:290px;height:290px;"></div>
+  <div class="hero-ring" style="width:400px;height:400px;"></div>
+  <div style="position:relative;z-index:1;">
+    <div class="hero-chip">Secure Parcel Verification</div>
+    <h1>Did your package arrive<br><em>as expected?</em></h1>
+    <p>Track your parcel and report any discrepancies. Our AI compares your received item against the original packing scan.</p>
+  </div>
+</div>
+
+<!-- Main card -->
+<div class="main-card" id="mainCard">
+  <div class="card" id="cardInner" style="margin-bottom:3rem;">
+
+    <!-- Progress bar -->
+    <div class="progress" id="progressBar"></div>
+
+    <!-- Step panels -->
+    <div id="step1"></div>
+    <div id="step2" style="display:none;"></div>
+    <div id="step3" style="display:none;"></div>
+    <div id="step4" style="display:none;"></div>
+  </div>
+</div>
+
+<footer>
+  <span>© 2024 ParcelGuard · Powered by AI Fraud Detection</span>
+  <div style="display:flex;gap:1.5rem;">
+    <span style="cursor:pointer;text-decoration:underline;text-decoration-style:dotted;">Privacy Policy</span>
+    <span style="cursor:pointer;text-decoration:underline;text-decoration-style:dotted;">Support</span>
+  </div>
+</footer>
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────────
+let currentStep = 1
+let parcelData = null
+let customerData = null
+let photoFile = null
+
+const STEPS = [
+  { n:1, label:'Track Package' },
+  { n:2, label:'Your Details' },
+  { n:3, label:'Upload Photo' },
+  { n:4, label:'Result' },
+]
+
+const PARCELS = {
+  'PGX4K9B2': { tracking:'PGX4K9B2', item:'Electronics — Smartphone', origin:'New York, NY', destination:'Los Angeles, CA', status:'delivered', delivered_at:'Jan 15, 2024', requires_attention:false },
+  'PGM2J7R5': { tracking:'PGM2J7R5', item:'Jewelry — Luxury Watch', origin:'Miami, FL', destination:'Chicago, IL', status:'delivered', delivered_at:'Jan 14, 2024', requires_attention:true },
+  'PGA8N3W1': { tracking:'PGA8N3W1', item:'Clothing — Winter Jacket', origin:'Seattle, WA', destination:'Denver, CO', status:'delivered', delivered_at:'Jan 16, 2024', requires_attention:false },
+  'PGL3H8K4': { tracking:'PGL3H8K4', item:"Books — Collector's Set", origin:'Boston, MA', destination:'Atlanta, GA', status:'in_transit', delivered_at:null, requires_attention:false },
+}
+
+const STATUS_LABELS = { packed:'Preparing', picked_up:'Picked Up', in_transit:'In Transit', delivered:'Delivered', investigation:'Under Investigation' }
+const STATUS_COLORS = { delivered:{bg:'#edf7f0',text:'#2d7a4e',dot:'#2d7a4e'}, in_transit:{bg:'#fdf6e3',text:'#b07a1a',dot:'#b07a1a'}, default:{bg:'#f2ede3',text:'#4a3f32',dot:'#8a7a68'} }
+
+// ── Render progress ────────────────────────────────────────────────────────
+function renderProgress() {
+  const bar = document.getElementById('progressBar')
+  let html = ''
+  STEPS.forEach((s,i) => {
+    const done = currentStep > s.n, active = currentStep === s.n
+    const cls = done?'done':active?'active':'idle'
+    html += `<div class="p-step"><div class="p-dot ${cls}">${done?'✓':s.n}</div><span class="p-label ${cls}">${s.label}</span></div>`
+    if (i < STEPS.length-1) html += `<div class="p-line" style="background:${done?'var(--gold)':'var(--sand)'};"></div>`
+  })
+  bar.innerHTML = html
+  bar.style.display = currentStep === 4 ? 'none' : 'flex'
+}
+
+// ── Step 1: Track ──────────────────────────────────────────────────────────
+function renderStep1() {
+  document.getElementById('step1').innerHTML = `
+    <h2 style="font-family:var(--serif);font-size:1.85rem;font-weight:600;color:var(--ink);margin-bottom:.5rem;letter-spacing:-.02em;">Track your package</h2>
+    <p style="color:var(--ink-f);font-size:.88rem;margin-bottom:1.8rem;line-height:1.6;">Enter your tracking number to see delivery status and report any issues.</p>
+    
+    <div style="display:flex;gap:.6rem;margin-bottom:.9rem;">
+      <input id="trackInput" class="f-input" placeholder="e.g. PGX4K9B2" style="flex:1;letter-spacing:.05em;font-size:.88rem;font-weight:500;" oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')doLookup()"/>
+      <button class="btn-primary" id="trackBtn" onclick="doLookup()"><span id="trackSpinner" class="spin" style="display:none;"></span><span id="trackTxt">→ Track</span></button>
+    </div>
+    
+    <div style="font-size:.72rem;color:var(--ink-f);margin-bottom:1.5rem;">
+      Demo: 
+      <span style="color:var(--gold);cursor:pointer;font-weight:500;text-decoration:underline;text-decoration-style:dotted;" onclick="quickTrack('PGX4K9B2')">PGX4K9B2</span> · 
+      <span style="color:var(--gold);cursor:pointer;font-weight:500;text-decoration:underline;text-decoration-style:dotted;" onclick="quickTrack('PGM2J7R5')">PGM2J7R5</span> · 
+      <span style="color:var(--gold);cursor:pointer;font-weight:500;text-decoration:underline;text-decoration-style:dotted;" onclick="quickTrack('PGA8N3W1')">PGA8N3W1</span>
+    </div>
+
+    <div id="trackError" style="display:none;padding:1rem 1.2rem;background:var(--danger-bg);border:1px solid rgba(155,42,42,.2);border-radius:8px;font-size:.82rem;color:var(--danger);margin-bottom:1rem;"></div>
+    <div id="parcelResult" style="display:none;"></div>
+    <div id="step1Actions" style="display:none;margin-top:1rem;display:none;justify-content:space-between;align-items:center;"></div>
+  `
+}
+
+function quickTrack(t) {
+  document.getElementById('trackInput').value = t
+  doLookup()
+}
+
+function doLookup() {
+  const val = document.getElementById('trackInput').value.trim().toUpperCase()
+  if (!val) return
+  document.getElementById('trackSpinner').style.display = 'inline-block'
+  document.getElementById('trackTxt').style.display = 'none'
+  document.getElementById('trackError').style.display = 'none'
+  document.getElementById('parcelResult').style.display = 'none'
+  document.getElementById('step1Actions').style.display = 'none'
+
+  setTimeout(() => {
+    document.getElementById('trackSpinner').style.display = 'none'
+    document.getElementById('trackTxt').style.display = 'inline'
+    const p = PARCELS[val]
+    if (!p) {
+      const err = document.getElementById('trackError')
+      err.textContent = "We couldn't find that tracking number. Please double-check and try again."
+      err.style.display = 'block'
+      return
+    }
+    parcelData = p
+    const sc = STATUS_COLORS[p.status] || STATUS_COLORS.default
+    const result = document.getElementById('parcelResult')
+    result.innerHTML = `
+      <div class="parcel-box ${p.requires_attention?'high-risk':''}">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem;">
+          <div>
+            <div style="font-size:.63rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-f);margin-bottom:.3rem;">Tracking Number</div>
+            <div style="font-family:var(--serif);font-size:1.25rem;font-weight:600;color:var(--ink);letter-spacing:.02em;">${p.tracking}</div>
+          </div>
+          <div class="status-pill" style="background:${sc.bg};border:1px solid ${sc.dot}20;">
+            <span style="width:7px;height:7px;border-radius:50%;background:${sc.dot};display:inline-block;"></span>
+            <span style="font-size:.7rem;font-weight:600;color:${sc.text};">${STATUS_LABELS[p.status]||p.status}</span>
+          </div>
+        </div>
+        <div class="parcel-meta">
+          <div class="meta-item"><div class="meta-l">Item</div><div class="meta-v">${p.item}</div></div>
+          <div class="meta-item"><div class="meta-l">${p.delivered_at?'Delivered':'Est. Delivery'}</div><div class="meta-v">${p.delivered_at||'In progress'}</div></div>
+          <div class="meta-item"><div class="meta-l">From</div><div class="meta-v">${p.origin}</div></div>
+          <div class="meta-item"><div class="meta-l">To</div><div class="meta-v">${p.destination}</div></div>
+        </div>
+        ${p.requires_attention ? '<div class="attention-bar">⚠ Our system has flagged anomalies with this parcel. We recommend filing a report below.</div>' : ''}
+      </div>
+    `
+    result.style.display = 'block'
+
+    const actions = document.getElementById('step1Actions')
+    actions.innerHTML = `
+      <div style="font-size:.78rem;color:var(--ink-f);">${p.requires_attention?'Anomalies detected — please file a report.':'Did your package arrive correctly?'}</div>
+      <button class="btn-primary" onclick="goStep(2)">${p.requires_attention?'🚨 File Fraud Report':'Continue →'}</button>
+    `
+    actions.style.display = 'flex'
+  }, 900)
+}
+
+// ── Step 2: Details ────────────────────────────────────────────────────────
+function renderStep2() {
+  document.getElementById('step2').innerHTML = `
+    <button class="btn-back" onclick="goStep(1)">← Back</button>
+    <h2 style="font-family:var(--serif);font-size:1.85rem;font-weight:600;color:var(--ink);margin-bottom:.5rem;letter-spacing:-.02em;">Your details</h2>
+    <p style="color:var(--ink-f);font-size:.88rem;margin-bottom:1.8rem;line-height:1.6;">For parcel <strong style="color:var(--ink);">${parcelData?.tracking}</strong> — ${parcelData?.item}</p>
+    
+    <div class="field">
+      <label class="f-label">Full name *</label>
+      <input id="custName" class="f-input" placeholder="Your full name" oninput="checkStep2()"/>
+    </div>
+    <div class="field">
+      <label class="f-label">Email address *</label>
+      <input id="custEmail" class="f-input" placeholder="you@example.com" type="email" oninput="checkStep2()"/>
+      <div class="hint">We'll send you case updates here.</div>
+    </div>
+    <div class="field">
+      <label class="f-label">Describe the issue (optional)</label>
+      <textarea id="custDesc" class="f-input" rows="4" placeholder="e.g. The package arrived open and appeared to contain different items…" style="resize:vertical;line-height:1.6;"></textarea>
+    </div>
+    <div style="display:flex;justify-content:flex-end;">
+      <button class="btn-primary" id="step2Btn" disabled onclick="goStep(3)">Continue →</button>
+    </div>
+  `
+}
+
+function checkStep2() {
+  const name = document.getElementById('custName')?.value.trim()
+  const email = document.getElementById('custEmail')?.value.trim()
+  const btn = document.getElementById('step2Btn')
+  if (btn) btn.disabled = !(name && email && email.includes('@'))
+}
+
+// ── Step 3: Upload ─────────────────────────────────────────────────────────
+function renderStep3() {
+  document.getElementById('step3').innerHTML = `
+    <button class="btn-back" onclick="goStep(2)">← Back</button>
+    <h2 style="font-family:var(--serif);font-size:1.85rem;font-weight:600;color:var(--ink);margin-bottom:.5rem;letter-spacing:-.02em;">Upload your photo</h2>
+    <p style="color:var(--ink-f);font-size:.88rem;margin-bottom:1.8rem;line-height:1.6;">A photo helps our AI compare your received item against the original packing scan — the most powerful evidence for fraud detection.</p>
+    
+    <div class="drop-zone" id="dropZone" onclick="document.getElementById('photoInput').click()"
+      ondragover="event.preventDefault();document.getElementById('dropZone').classList.add('drag')"
+      ondragleave="document.getElementById('dropZone').classList.remove('drag')"
+      ondrop="handleDrop(event)" style="margin-bottom:1.4rem;">
+      <input type="file" id="photoInput" accept="image/*" style="display:none;" onchange="loadPhoto(this)"/>
+      <img id="photoPreview" style="display:none;max-height:200px;max-width:100%;object-fit:contain;border-radius:8px;"/>
+      <div id="dzPlaceholder">
+        <div class="dz-icon">📸</div>
+        <div class="dz-title">Photograph your received item</div>
+        <div class="dz-sub">Drag & drop or click to select<br/><span style="font-size:.68rem;">JPG, PNG, HEIC, MP4 · Max 50MB</span></div>
+      </div>
+    </div>
+    
+    <div class="tips-box">
+      <strong style="color:var(--gold-d);">📷 Photo tips for best results</strong>
+      <ul>
+        <li>Show the full item in good lighting</li>
+        <li>Include the packaging or box if present</li>
+        <li>Capture any damage, missing parts, or seal breaks</li>
+        <li>Multiple angles help — take several shots</li>
+      </ul>
+    </div>
+    
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <button onclick="submitNoPhoto()" style="background:none;border:none;color:var(--ink-f);font-size:.78rem;cursor:pointer;text-decoration:underline;text-decoration-style:dotted;">Skip — submit without photo</button>
+      <button class="btn-primary" id="analyzeBtn" disabled onclick="runAnalysis()">
+        <span id="analyzeSpinner" class="spin" style="display:none;"></span>
+        <span id="analyzeTxt">🔍 Run AI Analysis</span>
+      </button>
+    </div>
+  `
+}
+
+function loadPhoto(input) {
+  const f = input.files[0]; if (!f) return
+  photoFile = f
+  const url = URL.createObjectURL(f)
+  const prev = document.getElementById('photoPreview')
+  prev.src = url; prev.style.display = 'block'
+  document.getElementById('dzPlaceholder').style.display = 'none'
+  document.getElementById('dropZone').classList.add('filled')
+  document.getElementById('dropZone').classList.remove('drag')
+  document.getElementById('analyzeBtn').disabled = false
+}
+
+function handleDrop(e) {
+  e.preventDefault()
+  document.getElementById('dropZone').classList.remove('drag')
+  const f = e.dataTransfer.files[0]
+  if (!f) return
+  const dt = new DataTransfer(); dt.items.add(f)
+  const input = document.getElementById('photoInput')
+  input.files = dt.files
+  loadPhoto(input)
+}
+
+function runAnalysis() {
+  document.getElementById('analyzeSpinner').style.display = 'inline-block'
+  document.getElementById('analyzeTxt').textContent = ' Analyzing…'
+  document.getElementById('analyzeBtn').disabled = true
+  setTimeout(showResult, 2000)
+}
+
+function submitNoPhoto() {
+  showResult(true)
+}
+
+function showResult(noPhoto) {
+  const name = document.getElementById('custName')?.value || 'Customer'
+  const email = document.getElementById('custEmail')?.value || ''
+  customerData = { name, email }
+  const risk = parcelData?.requires_attention ? 'high' : noPhoto ? 'unknown' : 'low'
+  const messages = {
+    high: '🚨 Significant anomalies detected. A fraud investigation has been opened automatically. You will be contacted within 24 hours.',
+    low: '✅ Your parcel looks clean! No significant anomalies detected between our packing scan and your received photo.',
+    unknown: '📋 Submission received. Our team will review your case within 24 hours.',
+  }
+  const claimId = risk === 'high' ? 'PG-2024-0' + Math.floor(Math.random()*90000+10000) : null
+  window._resultData = { risk, message: messages[risk], claimId, name, email }
+  goStep(4)
+}
+
+// ── Step 4: Result ─────────────────────────────────────────────────────────
+function renderStep4() {
+  const d = window._resultData
+  const palettes = {
+    high:    { bg:'#fff8f8', border:'rgba(155,42,42,.25)', icon:'🚨', titleColor:'#9b2a2a' },
+    low:     { bg:'#f8fff9', border:'rgba(45,122,78,.2)',  icon:'✅', titleColor:'#2d7a4e' },
+    unknown: { bg:'#fffdf8', border:'rgba(176,122,26,.2)', icon:'📋', titleColor:'#7a5c1e' },
+  }
+  const p = palettes[d.risk]
+  const titles = { high:'Fraud Investigation Opened', low:'Parcel Looks Clean', unknown:'Submission Received' }
+
+  document.getElementById('step4').innerHTML = `
+    <div style="animation:fadeUp .4s ease;">
+      <div style="background:${p.bg};border:1.5px solid ${p.border};border-radius:14px;padding:2rem;text-align:center;margin-bottom:1.4rem;">
+        <div style="font-size:3rem;margin-bottom:1rem;">${p.icon}</div>
+        <div style="font-family:var(--serif);font-size:1.6rem;font-weight:600;color:${p.titleColor};letter-spacing:-.02em;margin-bottom:.6rem;">${titles[d.risk]}</div>
+        <p style="font-size:.88rem;color:var(--ink-l);line-height:1.7;max-width:440px;margin:0 auto 1.2rem;">${d.message}</p>
+        <div style="display:flex;justify-content:center;gap:1.5rem;flex-wrap:wrap;font-size:.73rem;color:var(--ink-f);">
+          <span>Tracking: <strong style="color:var(--ink);">${parcelData?.tracking}</strong></span>
+          <span>Filed by: <strong style="color:var(--ink);">${d.name}</strong></span>
+          ${d.email ? `<span>Notified: <strong style="color:var(--ink);">${d.email}</strong></span>` : ''}
+        </div>
+      </div>
+
+      ${d.claimId ? `
+        <div style="background:#fff;border:1.5px solid var(--sand);border-radius:12px;padding:1.2rem 1.5rem;margin-bottom:1.4rem;display:flex;align-items:center;justify-content:space-between;">
+          <div>
+            <div style="font-size:.63rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-f);margin-bottom:.25rem;">Your Claim Reference</div>
+            <div style="font-family:var(--serif);font-size:1.35rem;font-weight:600;color:var(--ink);letter-spacing:.04em;">${d.claimId}</div>
+            <div style="font-size:.7rem;color:var(--ink-f);margin-top:.2rem;">Save this reference to check your claim status</div>
+          </div>
+          <button class="btn-primary" onclick="alert('In production, this navigates to /claim/${d.claimId}')">Check Status →</button>
+        </div>
+      ` : ''}
+
+      <div style="background:var(--parchment);border:1px solid var(--sand);border-radius:12px;padding:1.2rem 1.4rem;margin-bottom:1.4rem;">
+        <div style="font-family:var(--serif);font-size:.98rem;font-weight:600;color:var(--ink);margin-bottom:.8rem;">What happens next?</div>
+        ${(d.risk === 'high' ? [
+          ['🔍','Investigation opened','Our fraud team has been alerted and your case is already being reviewed.'],
+          ['📧','Email confirmation',`A detailed summary has been sent to ${d.email||'you'}.`],
+          ['⚖️','Resolution within 5–7 days','If fraud is confirmed, compensation will be processed automatically.'],
+        ] : d.risk === 'low' ? [
+          ['✅','No action needed','Our AI found no anomalies. Your parcel appears to have arrived correctly.'],
+          ['📧','Confirmation email sent',`A summary has been sent to ${d.email||'you'}.`],
+        ] : [
+          ['👀','Manual review queued','Our team will review your submission within 24 hours.'],
+          ['📧','Email confirmation sent',`We'll update you at ${d.email||'the address provided'}.`],
+        ]).map(([icon,title,desc]) => `
+          <div style="display:flex;gap:.75rem;align-items:flex-start;margin-bottom:.7rem;">
+            <span style="font-size:1.05rem;flex-shrink:0;">${icon}</span>
+            <div>
+              <div style="font-size:.8rem;font-weight:600;color:var(--ink);margin-bottom:.12rem;">${title}</div>
+              <div style="font-size:.73rem;color:var(--ink-f);line-height:1.5;">${desc}</div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+
+      <div style="text-align:center;">
+        <button class="btn-ghost" onclick="resetAll()">Track another package</button>
+      </div>
+    </div>
+  `
+}
+
+// ── Navigation ─────────────────────────────────────────────────────────────
+function goStep(n) {
+  currentStep = n
+  
+  // Hide hero on step > 1
+  const hero = document.getElementById('hero')
+  const mc = document.getElementById('mainCard')
+  if (n > 1) {
+    hero.style.display = 'none'
+    mc.style.margin = '3rem auto 0'
+  } else {
+    hero.style.display = 'block'
+    mc.style.margin = '-3rem auto 0'
+  }
+
+  // Hide all steps
+  for (let i=1;i<=4;i++) document.getElementById('step'+i).style.display = 'none'
+
+  // Collect data when leaving steps
+  if (n === 3 && document.getElementById('custName')) {
+    customerData = {
+      name: document.getElementById('custName').value,
+      email: document.getElementById('custEmail').value,
+    }
+  }
+
+  // Render current step
+  if (n === 1) renderStep1()
+  else if (n === 2) renderStep2()
+  else if (n === 3) renderStep3()
+  else if (n === 4) renderStep4()
+
+  document.getElementById('step'+n).style.display = 'block'
+  renderProgress()
+  window.scrollTo({top: n > 1 ? 0 : 60, behavior:'smooth'})
+}
+
+function resetAll() {
+  parcelData = null; customerData = null; photoFile = null; window._resultData = null
+  goStep(1)
+}
+
+// Init
+goStep(1)
+</script>
+</body>
+</html>

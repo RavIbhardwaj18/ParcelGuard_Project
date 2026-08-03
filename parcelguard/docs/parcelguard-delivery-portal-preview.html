@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ParcelGuard – Delivery Verification Portal</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@700;800&display=swap');
+:root{
+  --bg:#050d18;--s1:#08121d;--s2:#07111a;--bd:#0f2035;--bd2:#1a3050;
+  --b1:#38bdf8;--b2:#2a6090;--b3:#1a3050;
+  --tx:#c8dff0;--tx2:#8ab0c8;--tx3:#3a6080;
+  --g:#4ade80;--w:#fbbf24;--r:#f87171;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--tx);font-family:'DM Mono',monospace;min-height:100vh;display:flex;}
+::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-thumb{background:var(--bd);border-radius:2px;}
+input,select,textarea{background:var(--s2);border:1px solid var(--bd2);border-radius:6px;padding:.5rem .8rem;color:var(--tx);font-size:.72rem;font-family:'DM Mono',monospace;width:100%;outline:none;box-sizing:border-box;transition:border-color .15s;}
+input:focus,select:focus,textarea:focus{border-color:var(--b1);}
+input::placeholder,textarea::placeholder{color:var(--b3);}
+select option{background:var(--s2);}
+
+/* Sidebar */
+.sb{width:220px;background:var(--s1);border-right:1px solid var(--bd);display:flex;flex-direction:column;flex-shrink:0;}
+.sb-logo{padding:1.4rem 1.2rem .9rem;border-bottom:1px solid var(--bd);}
+.sb-logo .n{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800;color:#e0f0ff;}
+.sb-logo .n span{color:var(--b1);}
+.sb-logo .s{font-size:.5rem;color:var(--b3);margin-top:.15rem;letter-spacing:.1em;text-transform:uppercase;}
+.nav-i{display:flex;align-items:center;gap:.6rem;padding:.6rem 1.2rem;font-size:.7rem;cursor:pointer;border-left:2px solid transparent;color:var(--b2);transition:all .15s;}
+.nav-i:hover{color:var(--tx2);background:rgba(56,189,248,.03);}
+.nav-i.active{color:var(--b1);background:rgba(56,189,248,.07);border-left-color:var(--b1);}
+.sb-foot{padding:.9rem 1.2rem;border-top:1px solid var(--bd);margin-top:auto;}
+.dot{width:5px;height:5px;border-radius:50%;background:var(--b1);display:inline-block;animation:pulse 2s infinite;}
+
+/* Main */
+.main{flex:1;padding:1.5rem 2rem;overflow-y:auto;}
+.ph{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.6rem;padding-bottom:1.1rem;border-bottom:1px solid #0a1d30;}
+.pt{font-family:'Syne',sans-serif;font-size:1.45rem;font-weight:800;color:#e0f0ff;letter-spacing:-.03em;}
+.ps{font-size:.58rem;color:var(--tx3);margin-top:.2rem;letter-spacing:.08em;text-transform:uppercase;}
+
+/* Courier badge */
+.cb{background:var(--s2);border:1px solid var(--bd2);border-radius:8px;padding:.6rem 1rem;display:flex;align-items:center;gap:.8rem;}
+.ca{width:32px;height:32px;border-radius:50%;background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.2);display:flex;align-items:center;justify-content:center;font-size:.9rem;}
+
+/* Layout */
+.layout{display:grid;grid-template-columns:390px 1fr;gap:1.4rem;align-items:start;}
+.left,.right{display:flex;flex-direction:column;gap:1.1rem;}
+
+/* Cards */
+.card{background:var(--s1);border:1px solid var(--bd);border-radius:11px;padding:1.1rem;}
+.card.blue{border-top:2px solid var(--b1);border-color:rgba(56,189,248,.2);}
+.ct{display:flex;align-items:center;gap:.5rem;padding-bottom:.65rem;margin-bottom:.85rem;border-bottom:1px solid var(--bd);}
+.ct .icon{font-size:.9rem;}
+.ct .ttl{font-size:.57rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--b2);flex:1;}
+.badge{font-size:.5rem;padding:.12rem .45rem;border-radius:3px;background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.2);color:var(--b1);letter-spacing:.06em;}
+
+/* Label */
+.lbl{display:block;font-size:.56rem;letter-spacing:.12em;text-transform:uppercase;color:var(--tx3);margin-bottom:.3rem;}
+.field{margin-bottom:.78rem;}
+.field:last-child{margin-bottom:0;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;}
+.row{display:flex;gap:.5rem;}
+
+/* Type grid */
+.type-grid{display:grid;grid-template-columns:1fr 1fr;gap:.35rem;}
+.type-opt{padding:.4rem .55rem;border-radius:6px;cursor:pointer;border:1px solid var(--bd);background:var(--s2);display:flex;align-items:center;gap:.4rem;transition:all .15s;}
+.type-opt:hover{border-color:rgba(56,189,248,.25);}
+.type-opt.sel{border-color:rgba(56,189,248,.4);background:rgba(56,189,248,.08);}
+.type-opt .tl{font-size:.55rem;font-weight:600;color:var(--tx3);letter-spacing:.03em;}
+.type-opt.sel .tl{color:var(--b1);}
+
+/* Photo drop */
+.drop{border:1px dashed var(--bd2);border-radius:8px;min-height:100px;cursor:pointer;display:flex;align-items:center;justify-content:center;text-align:center;background:#060f18;transition:all .15s;position:relative;overflow:hidden;}
+.drop:hover{border-color:rgba(56,189,248,.3);}
+.drop.filled{border-color:#1a4060;border-style:solid;}
+.drop img{max-height:90px;max-width:100%;object-fit:contain;border-radius:4px;}
+.drop-ready{position:absolute;top:5px;right:5px;background:var(--b1);color:#040d18;font-size:.48rem;padding:.18rem .4rem;border-radius:3px;font-weight:700;}
+.drop-ph{padding:.8rem;}
+.drop-ph .di{font-size:1.4rem;margin-bottom:.25rem;}
+.drop-ph .dl{font-size:.58rem;color:#2a4a6a;}
+
+/* Signals */
+.sig-grid{display:grid;grid-template-columns:1fr 1fr;gap:.7rem;}
+.sig{background:var(--s2);border:1px solid var(--bd);border-radius:7px;padding:.62rem .75rem;display:flex;align-items:center;gap:.55rem;}
+.sig .icon{font-size:1.05rem;}
+.sig .sl{font-size:.49rem;color:#1a4060;letter-spacing:.08em;text-transform:uppercase;margin-bottom:.18rem;}
+.sig .sv{font-size:.63rem;font-weight:600;}
+
+/* Parcel panel */
+.pp{background:#060f18;border-radius:10px;overflow:hidden;}
+.pp-head{padding:.7rem 1.1rem;display:flex;align-items:center;justify-content:space-between;}
+.pp-track{font-size:.65rem;font-weight:700;letter-spacing:.05em;}
+.pp-desc{font-size:.56rem;color:var(--b3);margin-top:.1rem;}
+.pp-body{padding:1rem 1.1rem;}
+.pp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.7rem;margin-bottom:.9rem;}
+.pp-cell{background:var(--s2);border:1px solid var(--bd);border-radius:6px;padding:.5rem .65rem;}
+.pp-cell .pl{font-size:.49rem;color:#1a4060;letter-spacing:.08em;text-transform:uppercase;margin-bottom:.18rem;}
+.pp-cell .pv{font-size:.68rem;color:var(--tx);}
+.rfid-bar{display:flex;align-items:center;gap:.5rem;font-size:.6rem;color:var(--b1);background:rgba(56,189,248,.05);border:1px solid rgba(56,189,248,.15);border-radius:5px;padding:.4rem .7rem;margin-bottom:.8rem;}
+.score-bar{display:flex;align-items:center;gap:.8rem;background:var(--s2);border:1px solid var(--bd);border-radius:6px;padding:.55rem .75rem;margin-bottom:.8rem;}
+.score-track{height:5px;background:#0a1a28;border-radius:3px;overflow:hidden;flex:1;}
+.score-fill{height:100%;border-radius:3px;transition:width .5s;}
+.trail{font-size:.53rem;color:#1a4060;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.45rem;}
+.cp-row{display:flex;align-items:center;gap:.65rem;font-size:.6rem;color:#5a8aaa;margin-bottom:.32rem;}
+.cp-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+
+/* Risk badge */
+.rb{display:inline-flex;align-items:center;gap:.3rem;font-size:.58rem;padding:.2rem .55rem;border-radius:4px;font-family:'DM Mono',monospace;letter-spacing:.06em;}
+.rb .rd{width:5px;height:5px;border-radius:50%;}
+
+/* Alert boxes */
+.alert-r{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.3);border-radius:6px;padding:.6rem .8rem;margin-bottom:.8rem;font-size:.6rem;color:var(--r);line-height:1.6;}
+.alert-y{background:rgba(251,191,36,.07);border:1px solid rgba(251,191,36,.25);border-radius:6px;padding:.6rem .8rem;margin-bottom:.8rem;font-size:.6rem;color:var(--w);line-height:1.6;}
+
+/* Submit */
+.sub-btn{width:100%;padding:.75rem;background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.3);border-radius:7px;color:var(--b1);font-size:.7rem;font-weight:700;cursor:pointer;font-family:'DM Mono',monospace;letter-spacing:.08em;display:flex;align-items:center;justify-content:center;gap:.5rem;transition:all .2s;}
+.sub-btn:hover{background:rgba(56,189,248,.18);}
+.sub-btn:disabled{opacity:.4;cursor:not-allowed;}
+
+/* Empty state */
+.empty{text-align:center;padding:3rem 2rem;display:flex;flex-direction:column;align-items:center;gap:1rem;}
+.hint-pill{padding:.2rem .6rem;border-radius:4px;cursor:pointer;background:rgba(56,189,248,.06);border:1px solid rgba(56,189,248,.15);color:var(--b1);font-size:.6rem;display:inline-block;margin:.2rem;transition:all .15s;}
+.hint-pill:hover{background:rgba(56,189,248,.12);}
+
+/* Recent row */
+.rec-row{display:grid;grid-template-columns:100px 110px 1fr 90px;gap:.5rem;align-items:center;padding:.48rem .75rem;background:#070f1a;border-radius:7px;border:1px solid #0a1d30;margin-bottom:.4rem;font-size:.62rem;}
+
+/* Spin */
+.spin{width:12px;height:12px;border:2px solid #1a3050;border-top-color:var(--b1);border-radius:50%;animation:spin .7s linear infinite;display:inline-block;}
+.success-note{background:rgba(74,222,128,.07);border:1px solid rgba(74,222,128,.2);border-radius:6px;padding:.55rem;margin-bottom:.8rem;font-size:.6rem;color:var(--g);}
+
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes slide{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside class="sb">
+  <div class="sb-logo"><div class="n">📦 Parcel<span>Guard</span></div><div class="s">Supply Chain · Fraud Detection</div></div>
+  <nav style="padding:.7rem 0;flex:1;">
+    <div class="nav-i">🏭 Packing Portal</div>
+    <div class="nav-i active">🚚 Delivery</div>
+    <div class="nav-i">🛡️ Admin</div>
+    <div class="nav-i">🔍 Inquiries</div>
+    <div class="nav-i">⭐ Trust Scores</div>
+    <div class="nav-i">🗺️ Fraud Map</div>
+  </nav>
+  <div class="sb-foot">
+    <div style="font-size:.5rem;color:#1a3050;letter-spacing:.08em;text-transform:uppercase;">API: localhost:8000</div>
+    <div style="margin-top:.3rem;font-size:.5rem;color:var(--b1);display:flex;align-items:center;gap:.3rem;"><span class="dot"></span> SYSTEM ONLINE</div>
+  </div>
+</aside>
+
+<!-- Main -->
+<main class="main">
+  <div class="ph">
+    <div>
+      <div class="pt">🚚 Delivery Verification</div>
+      <div class="ps">Courier Agent Portal · Checkpoint Scan · RFID Verification · Handoff Photo</div>
+    </div>
+    <div class="cb" id="courierBadge" style="display:none;">
+      <div class="ca">👤</div>
+      <div>
+        <div style="font-size:.68rem;color:var(--tx);font-weight:500;" id="cbName"></div>
+        <div style="font-size:.55rem;color:var(--tx3);margin-top:.1rem;" id="cbSub"></div>
+      </div>
+      <div style="text-align:right;margin-left:.5rem;">
+        <div style="font-size:.65rem;font-weight:700;" id="cbScore"></div>
+        <div style="font-size:.5rem;color:var(--tx3);text-transform:uppercase;letter-spacing:.06em;">Trust Score</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="layout">
+    <!-- LEFT -->
+    <div class="left">
+      <!-- Courier -->
+      <div class="card blue">
+        <div class="ct"><span class="icon">👤</span><span class="ttl">Courier Session</span><span class="badge">REQUIRED</span></div>
+        <div class="field">
+          <label class="lbl">Select Your Profile *</label>
+          <select id="courierSel" onchange="selectCourier()">
+            <option value="">— SELECT COURIER —</option>
+            <option value="1" data-score="90.0" data-flag="0">Marcus Williams · FastShip · EMP1000 · Trust: 90</option>
+            <option value="2" data-score="95.5" data-flag="0">Sarah Chen · FastShip · EMP1001 · Trust: 95</option>
+            <option value="3" data-score="44.0" data-flag="1">David Rodriguez ⚠ · QuickDeliver · Trust: 44</option>
+            <option value="4" data-score="82.0" data-flag="0">Ahmed Hassan · GlobalEx · Trust: 82</option>
+            <option value="5" data-score="29.0" data-flag="1">Jake Turner ⚠ · QuickDeliver · Trust: 29</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Lookup -->
+      <div class="card">
+        <div class="ct"><span class="icon">🔍</span><span class="ttl">Parcel Lookup</span></div>
+        <div class="field">
+          <label class="lbl">Tracking Number</label>
+          <div class="row">
+            <input type="text" id="tracking" placeholder="PG12345678" oninput="this.value=this.value.toUpperCase()" style="flex:1;"/>
+            <button onclick="loadParcel()" style="padding:0 .9rem;background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.25);border-radius:6px;color:var(--b1);cursor:pointer;font-size:.6rem;font-family:'DM Mono',monospace;display:flex;align-items:center;gap:.4rem;white-space:nowrap;" id="scanBtn">
+              ⟳ SCAN
+            </button>
+          </div>
+          <div id="lookupErr" style="display:none;margin-top:.4rem;font-size:.6rem;color:var(--r);"></div>
+        </div>
+      </div>
+
+      <!-- Checkpoint form (hidden until parcel loaded) -->
+      <div class="card blue" id="cpForm" style="display:none;">
+        <div class="ct"><span class="icon">📍</span><span class="ttl">Log Checkpoint</span></div>
+
+        <div class="field">
+          <label class="lbl">Checkpoint Type *</label>
+          <div class="type-grid" id="typeGrid">
+            <div class="type-opt sel" data-v="pickup"    onclick="selType(this)"><span style="font-size:.8rem;">📤</span><span class="tl">PICKUP</span></div>
+            <div class="type-opt"     data-v="sort"      onclick="selType(this)"><span style="font-size:.8rem;">🔄</span><span class="tl">SORT FACILITY</span></div>
+            <div class="type-opt"     data-v="hub"       onclick="selType(this)"><span style="font-size:.8rem;">🏢</span><span class="tl">TRANSIT HUB</span></div>
+            <div class="type-opt"     data-v="delivery"  onclick="selType(this)"><span style="font-size:.8rem;">🚚</span><span class="tl">OUT FOR DELIVERY</span></div>
+            <div class="type-opt"     data-v="delivered" onclick="selType(this)"><span style="font-size:.8rem;">✅</span><span class="tl">DELIVERED</span></div>
+          </div>
+        </div>
+
+        <div class="field"><div class="g2">
+          <div><label class="lbl">Facility Name</label><input type="text" id="locName" placeholder="JFK Sort Hub"/></div>
+          <div><label class="lbl">City</label><input type="text" id="city" placeholder="New York" oninput="updateSignals()"/></div>
+        </div></div>
+        <div class="field"><div class="g2">
+          <div><label class="lbl">Latitude</label><input type="number" id="lat" placeholder="40.7128" step="0.0001"/></div>
+          <div><label class="lbl">Longitude</label><input type="number" id="lng" placeholder="-74.0060" step="0.0001"/></div>
+        </div></div>
+
+        <div class="field"><div class="g2">
+          <div>
+            <label class="lbl">Scanned Weight (kg)</label>
+            <input type="number" id="weight" placeholder="0.00" step="0.01" oninput="updateSignals()"/>
+            <div id="weightAlert" style="display:none;margin-top:.3rem;font-size:.56rem;color:var(--w);">⚠ Delta exceeds threshold</div>
+          </div>
+          <div>
+            <label class="lbl">Scanned RFID Tag</label>
+            <input type="text" id="rfid" placeholder="RFID-XXXX" oninput="this.value=this.value.toUpperCase();updateSignals()"/>
+            <div id="rfidAlert" style="display:none;margin-top:.3rem;font-size:.56rem;"></div>
+          </div>
+        </div></div>
+
+        <div class="field">
+          <label class="lbl">Checkpoint Photo</label>
+          <div class="drop" id="photoDrop" onclick="document.getElementById('photoInput').click()">
+            <input type="file" id="photoInput" accept="image/*" style="display:none" onchange="loadPhoto()"/>
+            <img id="photoPreview" style="display:none;"/>
+            <div class="drop-ready" id="photoReady" style="display:none;">✓ READY</div>
+            <div class="drop-ph" id="photoPlaceholder">
+              <div class="di">📷</div>
+              <div class="dl">DRAG & DROP or TAP</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="lbl">Notes</label>
+          <textarea id="notes" placeholder="Observations at this checkpoint..." rows="2"></textarea>
+        </div>
+
+        <div id="rfidMismatchAlert" class="alert-r" style="display:none;">🚨 <strong>RFID MISMATCH.</strong> Parcel substitution suspected. This will trigger an automatic fraud investigation.</div>
+        <div id="weightMismatchAlert" class="alert-y" style="display:none;">⚠ <strong>WEIGHT DISCREPANCY.</strong> Delta exceeds 0.3kg threshold. Possible content tampering.</div>
+
+        <div id="submitSuccess" class="success-note" style="display:none;">✓ Checkpoint logged successfully.</div>
+        <div id="submitErr" style="display:none;background:rgba(248,113,113,.07);border:1px solid rgba(248,113,113,.2);border-radius:6px;padding:.55rem;margin-bottom:.8rem;font-size:.6rem;color:var(--r);"></div>
+
+        <button class="sub-btn" id="submitBtn" onclick="submitCheckpoint()">
+          📤 LOG PICKUP SCAN
+        </button>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="right">
+      <!-- Parcel panel -->
+      <div id="parcelPanel">
+        <div class="card">
+          <div class="empty">
+            <div style="font-size:2.5rem;opacity:.2;">📦</div>
+            <div style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;color:#1a3a5a;">No Parcel Loaded</div>
+            <div style="font-size:.62rem;color:var(--b3);line-height:1.6;max-width:280px;">Enter a tracking number to load parcel details and begin checkpoint logging.</div>
+            <div style="margin-top:.3rem;">
+              <span class="hint-pill" onclick="fillTracking('PGX4K9B2')">PGX4K9B2</span>
+              <span class="hint-pill" onclick="fillTracking('PGM2J7R5')">PGM2J7R5</span>
+              <span class="hint-pill" onclick="fillTracking('PGA8N3W1')">PGA8N3W1</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Signal monitor (hidden until parcel loaded) -->
+      <div class="card" id="signals" style="display:none;">
+        <div class="ct"><span class="icon">🔬</span><span class="ttl">Live Signal Monitor</span><span class="badge">REAL-TIME</span></div>
+        <div class="sig-grid">
+          <div class="sig"><span class="icon">📡</span><div><div class="sl">RFID Status</div><div class="sv" id="sig-rfid" style="color:var(--tx3);">NOT SCANNED</div></div></div>
+          <div class="sig"><span class="icon">⚖️</span><div><div class="sl">Weight Delta</div><div class="sv" id="sig-weight" style="color:var(--tx3);">NOT WEIGHED</div></div></div>
+          <div class="sig"><span class="icon">📷</span><div><div class="sl">Photo Captured</div><div class="sv" id="sig-photo" style="color:var(--tx3);">PENDING</div></div></div>
+          <div class="sig"><span class="icon">📍</span><div><div class="sl">Checkpoints</div><div class="sv" id="sig-cp" style="color:var(--b1);">0 LOGGED</div></div></div>
+        </div>
+        <div id="anomalyBox" style="display:none;margin-top:.9rem;padding:.7rem;border-radius:7px;background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.2);font-size:.6rem;color:var(--r);line-height:1.7;">
+          <div style="font-weight:700;margin-bottom:.25rem;">🚨 ANOMALIES DETECTED — AI ANALYSIS WILL AUTO-RUN</div>
+          <div id="anomalyList"></div>
+        </div>
+      </div>
+
+      <!-- Recent scans -->
+      <div class="card">
+        <div class="ct"><span class="icon">📋</span><span class="ttl">Recent Scans</span><span class="badge">TODAY</span></div>
+        <div class="rec-row"><span style="color:var(--b1);font-weight:600;">PGX4K9B2</span><span style="color:#2a5070;">PICKUP</span><span style="color:var(--tx3);">New York</span><span class="rb" style="background:rgba(74,222,128,.08);border-color:rgba(74,222,128,.2);color:var(--g);"><span class="rd" style="background:var(--g);"></span>LOW</span></div>
+        <div class="rec-row"><span style="color:var(--b1);font-weight:600;">PGM2J7R5</span><span style="color:#2a5070;">HUB</span><span style="color:var(--tx3);">Chicago</span><span class="rb" style="background:rgba(248,113,113,.1);border-color:rgba(248,113,113,.3);color:var(--r);"><span class="rd" style="background:var(--r);"></span>HIGH</span></div>
+        <div class="rec-row"><span style="color:var(--b1);font-weight:600;">PGA8N3W1</span><span style="color:#2a5070;">DELIVERY</span><span style="color:var(--tx3);">Los Angeles</span><span class="rb" style="background:rgba(74,222,128,.08);border-color:rgba(74,222,128,.2);color:var(--g);"><span class="rd" style="background:var(--g);"></span>LOW</span></div>
+        <div class="rec-row"><span style="color:var(--b1);font-weight:600;">PGQ5P6T9</span><span style="color:#2a5070;">SORT</span><span style="color:var(--tx3);">Houston</span><span class="rb" style="background:rgba(251,191,36,.08);border-color:rgba(251,191,36,.25);color:var(--w);"><span class="rd" style="background:var(--w);"></span>MEDIUM</span></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+// ── State ─────────────────────────────────────────────────────────────────────
+const PARCELS = {
+  'PGX4K9B2': { tracking:'PGX4K9B2', item:'Electronics - Smartphone', weight:0.8, l:20, w:12, h:5, value:349, rfid:'RFID-4K9B2M1A3X7Y', risk:'low', score:12.1, status:'in_transit',
+    checkpoints:[{type:'PICKUP',city:'New York',w:0.8,rfid:'RFID-4K9B2M1A3X7Y',ok:true}]},
+  'PGM2J7R5': { tracking:'PGM2J7R5', item:'Jewelry - Watch', weight:0.3, l:15, w:10, h:8, value:1200, rfid:'RFID-M2J7R5P8Q4N2', risk:'high', score:84.2, status:'investigation',
+    checkpoints:[{type:'PICKUP',city:'Miami',w:0.3,rfid:'RFID-M2J7R5P8Q4N2',ok:true},{type:'SORT',city:'Atlanta',w:0.6,rfid:'RFID-FAKETAGXXX999',ok:false}]},
+  'PGA8N3W1': { tracking:'PGA8N3W1', item:'Clothing - Jacket', weight:1.2, l:35, w:25, h:10, value:85, rfid:'RFID-A8N3W1C5T6M0', risk:'low', score:8.3, status:'delivered',
+    checkpoints:[{type:'PICKUP',city:'Chicago',w:1.2,rfid:'RFID-A8N3W1C5T6M0',ok:true},{type:'HUB',city:'Kansas City',w:1.2,rfid:'RFID-A8N3W1C5T6M0',ok:true},{type:'DELIVERY',city:'Los Angeles',w:1.21,rfid:'RFID-A8N3W1C5T6M0',ok:true}]},
+};
+let currentParcel = null;
+let cpCount = 0;
+let selectedType = 'pickup';
+let hasPhoto = false;
+
+const COURIER_DATA = {
+  '1':{name:'Marcus Williams',company:'FastShip',emp:'EMP1000',score:90.0,flag:false},
+  '2':{name:'Sarah Chen',company:'FastShip',emp:'EMP1001',score:95.5,flag:false},
+  '3':{name:'David Rodriguez',company:'QuickDeliver',emp:'EMP1002',score:44.0,flag:true},
+  '4':{name:'Ahmed Hassan',company:'GlobalEx',emp:'EMP1003',score:82.0,flag:false},
+  '5':{name:'Jake Turner',company:'QuickDeliver',emp:'EMP1004',score:29.0,flag:true},
+};
+
+function selectCourier() {
+  const v = document.getElementById('courierSel').value;
+  const badge = document.getElementById('courierBadge');
+  if (!v) { badge.style.display = 'none'; return; }
+  const c = COURIER_DATA[v];
+  badge.style.display = 'flex';
+  badge.style.animation = 'slide .3s ease';
+  document.getElementById('cbName').textContent = c.name;
+  document.getElementById('cbSub').textContent = `${c.company} · ${c.emp}${c.flag ? ' · ⚠ FLAGGED' : ''}`;
+  const sc = document.getElementById('cbScore');
+  sc.textContent = c.score.toFixed(1);
+  sc.style.color = c.score >= 70 ? '#4ade80' : c.score >= 40 ? '#fbbf24' : '#f87171';
+}
+
+function fillTracking(t) { document.getElementById('tracking').value = t; }
+
+function loadParcel() {
+  const t = document.getElementById('tracking').value.trim().toUpperCase();
+  const errEl = document.getElementById('lookupErr');
+  errEl.style.display = 'none';
+  const p = PARCELS[t];
+  if (!p) {
+    errEl.textContent = `✗ Tracking number "${t}" not found in system`;
+    errEl.style.display = 'block';
+    document.getElementById('parcelPanel').innerHTML = buildEmptyState();
+    document.getElementById('cpForm').style.display = 'none';
+    document.getElementById('signals').style.display = 'none';
+    currentParcel = null;
+    return;
+  }
+  currentParcel = p; cpCount = p.checkpoints.length;
+  document.getElementById('parcelPanel').innerHTML = buildParcelPanel(p);
+  document.getElementById('cpForm').style.display = 'block';
+  document.getElementById('signals').style.display = 'block';
+  document.getElementById('sig-cp').textContent = `${cpCount} LOGGED`;
+  updateSignals();
+}
+
+function buildEmptyState() {
+  return `<div class="card"><div class="empty">
+    <div style="font-size:2.5rem;opacity:.2;">📦</div>
+    <div style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;color:#1a3a5a;">No Parcel Loaded</div>
+    <div style="font-size:.62rem;color:var(--b3);line-height:1.6;max-width:280px;">Enter a tracking number to load parcel details.</div>
+    <div style="margin-top:.3rem;">
+      <span class="hint-pill" onclick="fillTracking('PGX4K9B2')">PGX4K9B2</span>
+      <span class="hint-pill" onclick="fillTracking('PGM2J7R5')">PGM2J7R5</span>
+      <span class="hint-pill" onclick="fillTracking('PGA8N3W1')">PGA8N3W1</span>
+    </div>
+  </div></div>`;
+}
+
+function riskStyle(r) {
+  const m = {unknown:{c:'#6b7a8d',bg:'rgba(107,122,141,0.1)',bd:'rgba(107,122,141,0.2)'},
+             low:{c:'#4ade80',bg:'rgba(74,222,128,0.08)',bd:'rgba(74,222,128,0.2)'},
+             medium:{c:'#fbbf24',bg:'rgba(251,191,36,0.08)',bd:'rgba(251,191,36,0.2)'},
+             high:{c:'#f87171',bg:'rgba(248,113,113,0.1)',bd:'rgba(248,113,113,0.3)'}};
+  return m[r] || m.unknown;
+}
+
+function buildParcelPanel(p) {
+  const rs = riskStyle(p.risk);
+  const cpRows = p.checkpoints.map((c,i) => `
+    <div class="cp-row">
+      <span class="cp-dot" style="background:${i===p.checkpoints.length-1?'var(--b1)':'#1a3050'};border:${i===p.checkpoints.length-1?'1px solid var(--b1)':'none'};"></span>
+      <span style="color:var(--b2);min-width:70px;">${c.type}</span>
+      <span>${c.city}</span>
+      ${c.w ? `<span>· ${c.w}kg</span>` : ''}
+      ${c.rfid ? `<span style="color:${c.ok?'#4ade80':'#f87171'};">· RFID ${c.ok?'✓':'✗ MISMATCH'}</span>` : ''}
+    </div>`).join('');
+
+  const scoreBar = p.score != null ? `
+    <div class="score-bar">
+      <div style="flex:1;">
+        <div style="font-size:.49rem;color:#1a4060;letter-spacing:.08em;text-transform:uppercase;margin-bottom:.28rem;">AI Fraud Score</div>
+        <div class="score-track"><div class="score-fill" style="width:${p.score}%;background:${p.score>70?'#f87171':p.score>30?'#fbbf24':'#4ade80'};"></div></div>
+      </div>
+      <div style="font-size:1.05rem;font-weight:700;color:${rs.c};font-family:'Syne',sans-serif;min-width:40px;text-align:right;">${p.score.toFixed(1)}</div>
+    </div>` : '';
+
+  return `<div class="pp" style="border:1px solid ${rs.bd};box-shadow:${p.risk==='high'?'0 0 20px rgba(248,113,113,0.1)':'none'};">
+    <div class="pp-head" style="background:${rs.bg};border-bottom:1px solid ${rs.bd};">
+      <div><div class="pp-track" style="color:${rs.c};">${p.tracking}</div><div class="pp-desc">${p.item}</div></div>
+      <span class="rb" style="background:${rs.bg};border-color:${rs.bd};color:${rs.c};"><span class="rd" style="background:${rs.c};"></span>${p.risk.toUpperCase()}</span>
+    </div>
+    <div class="pp-body">
+      <div class="pp-grid">
+        <div class="pp-cell"><div class="pl">Declared Weight</div><div class="pv">${p.weight} kg</div></div>
+        <div class="pp-cell"><div class="pl">Dimensions</div><div class="pv">${p.l}×${p.w}×${p.h} cm</div></div>
+        <div class="pp-cell"><div class="pl">Value</div><div class="pv">${p.value ? '$'+p.value : '—'}</div></div>
+      </div>
+      ${p.rfid ? `<div class="rfid-bar"><span>📡</span><span style="color:#2a6080;">Expected RFID:</span><strong>${p.rfid}</strong></div>` : ''}
+      ${scoreBar}
+      ${p.checkpoints.length ? `<div class="trail">Checkpoint Trail (${p.checkpoints.length})</div>${cpRows}` : ''}
+    </div>
+  </div>`;
+}
+
+function selType(el) {
+  document.querySelectorAll('.type-opt').forEach(e => e.classList.remove('sel'));
+  el.classList.add('sel');
+  selectedType = el.dataset.v;
+  const labels = {pickup:'PICKUP',sort:'SORT FACILITY',hub:'TRANSIT HUB',delivery:'OUT FOR DELIVERY',delivered:'DELIVERED'};
+  const icons = {pickup:'📤',sort:'🔄',hub:'🏢',delivery:'🚚',delivered:'✅'};
+  document.getElementById('submitBtn').textContent = `${icons[selectedType]} LOG ${labels[selectedType]} SCAN`;
+}
+
+function loadPhoto() {
+  const f = document.getElementById('photoInput').files[0];
+  if (!f) return;
+  const url = URL.createObjectURL(f);
+  const prev = document.getElementById('photoPreview');
+  prev.src = url; prev.style.display = 'block';
+  document.getElementById('photoPlaceholder').style.display = 'none';
+  document.getElementById('photoReady').style.display = 'block';
+  document.getElementById('photoDrop').classList.add('filled');
+  hasPhoto = true;
+  document.getElementById('sig-photo').textContent = 'UPLOADED ✓';
+  document.getElementById('sig-photo').style.color = 'var(--g)';
+}
+
+function updateSignals() {
+  if (!currentParcel) return;
+  const rfidVal = document.getElementById('rfid').value.trim().toUpperCase();
+  const weightVal = parseFloat(document.getElementById('weight').value);
+
+  // RFID
+  const rfidSig = document.getElementById('sig-rfid');
+  const rfidAlertInline = document.getElementById('rfidAlert');
+  const rfidMismatchAlert = document.getElementById('rfidMismatchAlert');
+  if (rfidVal) {
+    const match = rfidVal === currentParcel.rfid;
+    rfidSig.textContent = match ? 'MATCH ✓' : 'MISMATCH ✗';
+    rfidSig.style.color = match ? 'var(--g)' : 'var(--r)';
+    rfidAlertInline.style.display = 'block';
+    rfidAlertInline.style.color = match ? 'var(--g)' : 'var(--r)';
+    rfidAlertInline.textContent = match ? '✓ RFID MATCH' : '✗ RFID MISMATCH';
+    rfidMismatchAlert.style.display = match ? 'none' : 'block';
+  } else {
+    rfidSig.textContent = 'NOT SCANNED'; rfidSig.style.color = 'var(--tx3)';
+    rfidAlertInline.style.display = 'none'; rfidMismatchAlert.style.display = 'none';
+  }
+
+  // Weight
+  const weightSig = document.getElementById('sig-weight');
+  const weightAlertInline = document.getElementById('weightAlert');
+  const weightMismatchAlert = document.getElementById('weightMismatchAlert');
+  if (!isNaN(weightVal) && weightVal > 0) {
+    const delta = Math.abs(weightVal - currentParcel.weight).toFixed(3);
+    const flag = parseFloat(delta) > 0.3;
+    weightSig.textContent = `${delta}kg ${flag ? '⚠' : '✓'}`;
+    weightSig.style.color = flag ? 'var(--w)' : 'var(--g)';
+    weightAlertInline.style.display = flag ? 'block' : 'none';
+    weightAlertInline.textContent = `⚠ Delta: ${delta}kg — threshold exceeded`;
+    weightMismatchAlert.style.display = flag ? 'block' : 'none';
+  } else {
+    weightSig.textContent = 'NOT WEIGHED'; weightSig.style.color = 'var(--tx3)';
+    weightAlertInline.style.display = 'none'; weightMismatchAlert.style.display = 'none';
+  }
+
+  // Anomaly box
+  const anomalyBox = document.getElementById('anomalyBox');
+  const anomalyList = document.getElementById('anomalyList');
+  const rfidMismatch = rfidVal && rfidVal !== currentParcel.rfid;
+  const weightFlag = !isNaN(weightVal) && weightVal > 0 && Math.abs(weightVal - currentParcel.weight) > 0.3;
+  if (rfidMismatch || weightFlag) {
+    anomalyBox.style.display = 'block';
+    let items = '';
+    if (rfidMismatch) items += '<div>· RFID tag mismatch detected</div>';
+    if (weightFlag) items += `<div>· Weight delta exceeds 0.3kg threshold</div>`;
+    anomalyList.innerHTML = items;
+  } else {
+    anomalyBox.style.display = 'none';
+  }
+}
+
+function submitCheckpoint() {
+  const btn = document.getElementById('submitBtn');
+  const successEl = document.getElementById('submitSuccess');
+  const errEl = document.getElementById('submitErr');
+  const city = document.getElementById('city').value;
+
+  if (!document.getElementById('courierSel').value) {
+    errEl.textContent = '✗ Please select a courier profile first';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  btn.disabled = true;
+  const orig = btn.innerHTML;
+  btn.innerHTML = '<span class="spin"></span> SUBMITTING...';
+
+  setTimeout(() => {
+    btn.disabled = false;
+    btn.innerHTML = orig;
+    successEl.textContent = `✓ Checkpoint logged · ${selectedType.replace(/_/g,' ').toUpperCase()} · ${city || 'Location recorded'}`;
+    successEl.style.display = 'block';
+    errEl.style.display = 'none';
+
+    // Add to checkpoint trail
+    cpCount++;
+    document.getElementById('sig-cp').textContent = `${cpCount} LOGGED`;
+    document.getElementById('sig-cp').style.color = 'var(--b1)';
+
+    // Reset fields
+    document.getElementById('weight').value = '';
+    document.getElementById('rfid').value = '';
+    document.getElementById('notes').value = '';
+    document.getElementById('rfidAlert').style.display = 'none';
+    document.getElementById('weightAlert').style.display = 'none';
+    document.getElementById('rfidMismatchAlert').style.display = 'none';
+    document.getElementById('weightMismatchAlert').style.display = 'none';
+    document.getElementById('anomalyBox').style.display = 'none';
+    document.getElementById('sig-rfid').textContent = 'NOT SCANNED'; document.getElementById('sig-rfid').style.color = 'var(--tx3)';
+    document.getElementById('sig-weight').textContent = 'NOT WEIGHED'; document.getElementById('sig-weight').style.color = 'var(--tx3)';
+    document.getElementById('sig-photo').textContent = 'PENDING'; document.getElementById('sig-photo').style.color = 'var(--tx3)';
+    document.getElementById('photoPreview').style.display = 'none';
+    document.getElementById('photoPlaceholder').style.display = 'block';
+    document.getElementById('photoReady').style.display = 'none';
+    document.getElementById('photoDrop').classList.remove('filled');
+    hasPhoto = false;
+    setTimeout(() => { successEl.style.display = 'none'; }, 4000);
+  }, 1400);
+}
+</script>
+</body>
+</html>

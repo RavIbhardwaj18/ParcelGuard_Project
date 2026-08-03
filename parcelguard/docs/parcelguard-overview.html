@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>ParcelGuard — Project Overview</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,700;1,9..144,300&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+
+:root {
+  --bg: #f7f4ef; --bg2: #eee9e0; --bd: #ddd5c2;
+  --ink: #1a1612; --ink2: #4a3f32; --ink3: #8a7a68;
+  --gold: #b8804a; --gold-l: #d4a36e; --gold-d: #7a5020;
+  --red: #c0392b; --green: #1e7a4a; --blue: #2255aa; --violet: #5c3aaa;
+  --serif: 'Fraunces', serif; --sans: 'DM Sans', sans-serif; --mono: 'DM Mono', monospace;
+}
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--ink); font-family: var(--sans); }
+::selection { background: rgba(184,128,74,.2); }
+
+/* ── Layout ── */
+.page { max-width: 980px; margin: 0 auto; padding: 0 2rem 5rem; }
+
+/* ── Hero ── */
+.hero {
+  background: linear-gradient(135deg, #0e1a2e 0%, #152540 50%, #0a1020 100%);
+  padding: 5rem 2rem 4rem; text-align: center; position: relative; overflow: hidden;
+}
+.hero::before {
+  content: ''; position: absolute; inset: 0;
+  background-image: radial-gradient(circle at 20% 50%, rgba(184,128,74,.08) 0%, transparent 60%),
+    radial-gradient(circle at 80% 30%, rgba(34,85,170,.1) 0%, transparent 50%);
+}
+.hero-ring {
+  position: absolute; top: 50%; left: 50%; border-radius: 50%;
+  transform: translate(-50%, -50%); pointer-events: none;
+  border: 1px solid rgba(184,128,74,.07);
+  animation: ringPulse 4s ease-in-out infinite;
+}
+.hero-content { position: relative; z-index: 1; max-width: 700px; margin: 0 auto; }
+.hero-badge {
+  display: inline-block; font-size: .65rem; font-weight: 600; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--gold-l); margin-bottom: 1.2rem;
+  background: rgba(184,128,74,.12); padding: .35rem 1rem;
+  border-radius: 20px; border: 1px solid rgba(184,128,74,.25);
+}
+.hero h1 {
+  font-family: var(--serif); font-size: clamp(2.2rem, 5vw, 3.5rem); font-weight: 300;
+  color: #f0ece4; letter-spacing: -.02em; line-height: 1.15; margin-bottom: 1rem;
+}
+.hero h1 em { font-weight: 700; color: var(--gold-l); font-style: normal; }
+.hero p {
+  font-size: 1rem; color: rgba(255,255,255,.55); line-height: 1.7; max-width: 520px; margin: 0 auto 2rem;
+}
+.hero-stats {
+  display: flex; justify-content: center; gap: 2.5rem; flex-wrap: wrap;
+}
+.hero-stat { text-align: center; }
+.hero-stat .num {
+  font-family: var(--serif); font-size: 2rem; color: var(--gold-l);
+  font-weight: 700; line-height: 1; display: block;
+}
+.hero-stat .lbl { font-size: .62rem; color: rgba(255,255,255,.4); letter-spacing: .1em; text-transform: uppercase; margin-top: .25rem; }
+
+/* ── Sections ── */
+section { padding: 3rem 0 0; }
+.section-label {
+  font-size: .6rem; font-weight: 600; letter-spacing: .15em; text-transform: uppercase;
+  color: var(--gold); margin-bottom: .6rem;
+}
+.section-title {
+  font-family: var(--serif); font-size: 1.8rem; font-weight: 600; color: var(--ink);
+  letter-spacing: -.02em; margin-bottom: .5rem;
+}
+.section-sub { font-size: .92rem; color: var(--ink3); line-height: 1.7; max-width: 580px; margin-bottom: 2rem; }
+hr.rule { border: none; border-top: 1px solid var(--bd); margin: 2.5rem 0 0; }
+
+/* ── Architecture flow ── */
+.arch-flow {
+  display: grid; grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr;
+  gap: 0; align-items: center; margin-bottom: 2rem; overflow-x: auto;
+}
+.arch-node {
+  background: #fff; border: 1.5px solid var(--bd); border-radius: 10px;
+  padding: .9rem; text-align: center; min-width: 120px;
+}
+.arch-node .icon { font-size: 1.4rem; margin-bottom: .35rem; }
+.arch-node .name { font-size: .72rem; font-weight: 600; color: var(--ink); }
+.arch-node .detail { font-size: .58rem; color: var(--ink3); margin-top: .15rem; font-family: var(--mono); }
+.arch-arrow { font-size: 1.1rem; color: var(--gold); padding: 0 .3rem; text-align: center; }
+
+/* ── Score formula ── */
+.formula-card {
+  background: #fff; border: 1.5px solid var(--bd); border-radius: 12px;
+  padding: 1.5rem 2rem; margin-bottom: 1.5rem;
+}
+.formula-display {
+  font-family: var(--mono); font-size: .9rem; color: var(--ink);
+  background: var(--bg2); border-radius: 8px; padding: .9rem 1.2rem;
+  margin-bottom: 1.2rem; letter-spacing: .02em; line-height: 2;
+  border-left: 3px solid var(--gold);
+}
+.formula-display .w { color: var(--gold-d); font-weight: 500; }
+.formula-display .v { color: var(--blue); }
+.signal-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: .8rem; }
+.signal-card {
+  background: var(--bg2); border-radius: 8px; padding: .8rem;
+  border-top: 3px solid var(--bd); transition: border-color .2s;
+}
+.signal-card:hover { border-top-color: var(--gold); }
+.signal-pct { font-family: var(--serif); font-size: 1.5rem; font-weight: 700; color: var(--gold); margin-bottom: .2rem; }
+.signal-name { font-size: .72rem; font-weight: 600; color: var(--ink); margin-bottom: .25rem; }
+.signal-desc { font-size: .62rem; color: var(--ink3); line-height: 1.55; }
+
+/* ── Screen cards ── */
+.screens-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+.screen-card {
+  background: #fff; border: 1.5px solid var(--bd); border-radius: 12px;
+  padding: 1.2rem 1.4rem; transition: all .2s; position: relative; overflow: hidden;
+}
+.screen-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+}
+.screen-card:hover { border-color: var(--gold-l); box-shadow: 0 4px 20px rgba(26,22,18,.07); }
+.screen-num { font-size: .55rem; color: var(--ink3); font-family: var(--mono); letter-spacing: .08em; margin-bottom: .3rem; }
+.screen-name { font-size: .92rem; font-weight: 600; color: var(--ink); margin-bottom: .15rem; display: flex; align-items: center; gap: .4rem; }
+.screen-user { font-size: .62rem; color: var(--gold); margin-bottom: .4rem; }
+.screen-desc { font-size: .72rem; color: var(--ink3); line-height: 1.65; }
+.screen-tag {
+  display: inline-block; font-size: .52rem; font-family: var(--mono);
+  padding: .15rem .5rem; border-radius: 3px; margin-top: .4rem; margin-right: .3rem;
+  background: var(--bg2); color: var(--ink3);
+}
+
+/* ── API table ── */
+.api-group { margin-bottom: 1.5rem; }
+.api-group-title {
+  font-size: .65rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--gold-d); margin-bottom: .5rem; font-family: var(--mono);
+  padding: .3rem .7rem; background: var(--bg2); border-radius: 5px; display: inline-block;
+}
+.api-row {
+  display: grid; grid-template-columns: 65px 200px 1fr;
+  gap: .6rem; align-items: center; padding: .45rem .6rem;
+  border-bottom: 1px solid var(--bd); font-size: .72rem;
+}
+.api-row:last-child { border-bottom: none; }
+.method {
+  font-family: var(--mono); font-size: .6rem; font-weight: 500;
+  padding: .15rem .4rem; border-radius: 3px; text-align: center;
+}
+.method.GET { background: #e8f4ed; color: var(--green); }
+.method.POST { background: #e8eef8; color: var(--blue); }
+.method.PUT { background: #f5f0e8; color: var(--gold-d); }
+.path { font-family: var(--mono); font-size: .65rem; color: var(--ink2); }
+.desc { color: var(--ink3); font-size: .7rem; }
+
+/* ── Trust mechanic ── */
+.trust-row {
+  display: flex; align-items: center; gap: .9rem; padding: .6rem 0;
+  border-bottom: 1px solid var(--bd);
+}
+.trust-delta {
+  width: 52px; text-align: right; font-family: var(--serif);
+  font-size: 1rem; font-weight: 700; flex-shrink: 0;
+}
+.trust-event { font-size: .78rem; color: var(--ink2); flex: 1; }
+.trust-bar-wrap { width: 100px; height: 5px; background: var(--bd); border-radius: 3px; overflow: hidden; flex-shrink: 0; }
+.trust-bar-fill { height: 100%; border-radius: 3px; }
+
+/* ── Build summary ── */
+.build-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+.build-card {
+  background: #fff; border: 1.5px solid var(--bd); border-radius: 10px;
+  padding: 1.1rem; text-align: center;
+}
+.build-num { font-family: var(--serif); font-size: 2.2rem; font-weight: 700; color: var(--gold); line-height: 1; }
+.build-lbl { font-size: .65rem; color: var(--ink3); margin-top: .2rem; letter-spacing: .06em; text-transform: uppercase; }
+
+/* ── Stack badges ── */
+.stack-grid { display: flex; flex-wrap: wrap; gap: .5rem; }
+.stack-badge {
+  display: flex; align-items: center; gap: .4rem;
+  padding: .4rem .8rem; border-radius: 6px; border: 1.5px solid var(--bd);
+  background: #fff; font-size: .72rem; font-weight: 500; color: var(--ink2);
+  transition: all .15s;
+}
+.stack-badge:hover { border-color: var(--gold-l); color: var(--ink); }
+
+/* ── Footer ── */
+footer {
+  margin-top: 4rem; padding: 1.5rem 2rem; border-top: 1px solid var(--bd);
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: .7rem; color: var(--ink3);
+}
+
+@keyframes ringPulse { 0%,100%{opacity:.6} 50%{opacity:1} }
+@keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+
+/* ── Responsive ── */
+@media(max-width:680px){
+  .arch-flow{grid-template-columns:1fr;} .arch-arrow{transform:rotate(90deg);}
+  .signal-grid{grid-template-columns:1fr 1fr;} .screens-grid{grid-template-columns:1fr;}
+  .build-grid{grid-template-columns:1fr 1fr;} .api-row{grid-template-columns:55px 140px 1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="hero-ring" style="width:300px;height:300px;"></div>
+  <div class="hero-ring" style="width:500px;height:500px;animation-delay:.8s;"></div>
+  <div class="hero-ring" style="width:700px;height:700px;animation-delay:1.6s;"></div>
+  <div class="hero-content">
+    <div class="hero-badge">Supply Chain Integrity Hackathon</div>
+    <h1>📦 <em>ParcelGuard</em><br>Fraud Detection Platform</h1>
+    <p>AI-powered parcel tamper detection across the full delivery chain — from warehouse intake to customer doorstep, with real-time trust scoring and investigation management.</p>
+    <div class="hero-stats">
+      <div class="hero-stat"><span class="num">7</span><span class="lbl">Screens built</span></div>
+      <div class="hero-stat"><span class="num">18</span><span class="lbl">API endpoints</span></div>
+      <div class="hero-stat"><span class="num">7</span><span class="lbl">DB tables</span></div>
+      <div class="hero-stat"><span class="num">4</span><span class="lbl">Fraud signals</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="page">
+
+<!-- Architecture -->
+<section>
+  <div class="section-label">System Design</div>
+  <h2 class="section-title">Four-Layer Architecture</h2>
+  <p class="section-sub">Two React frontends talk to a single FastAPI gateway, which delegates fraud scoring to the AI services layer and persists everything in PostgreSQL.</p>
+
+  <div class="arch-flow">
+    <div class="arch-node"><div class="icon">🖥️</div><div class="name">Ops UI</div><div class="detail">React :3000</div></div>
+    <div class="arch-arrow">⟶</div>
+    <div class="arch-node" style="border-color:#b8804a40;background:#fffbf5;"><div class="icon">⚡</div><div class="name">API Gateway</div><div class="detail">FastAPI :8000</div></div>
+    <div class="arch-arrow">⟶</div>
+    <div class="arch-node"><div class="icon">🤖</div><div class="name">AI Services</div><div class="detail">ResNet50 + Scorer</div></div>
+    <div class="arch-arrow">⟶</div>
+    <div class="arch-node"><div class="icon">🗄️</div><div class="name">PostgreSQL</div><div class="detail">7 tables, JSONB</div></div>
+  </div>
+  <div style="margin-top:.5rem;display:flex;gap:1rem;">
+    <div class="arch-node" style="flex:1;"><div class="icon">👤</div><div class="name">Customer Portal</div><div class="detail">React :3001 — public tracking + fraud reports</div></div>
+    <div style="font-size:.7rem;color:var(--ink3);display:flex;align-items:center;padding:.5rem;">Routes through same FastAPI gateway via /api/customer</div>
+  </div>
+</section>
+<hr class="rule"/>
+
+<!-- Fraud Detection -->
+<section>
+  <div class="section-label">Core Algorithm</div>
+  <h2 class="section-title">Fraud Scoring Engine</h2>
+  <p class="section-sub">Every parcel gets a 0–100 fraud score computed from four weighted signals. Scores above 70 trigger automatic investigation.</p>
+  <div class="formula-card">
+    <div class="formula-display">
+      fraud_score = (<span class="w">0.40</span> × <span class="v">image_anomaly</span>) + (<span class="w">0.25</span> × <span class="v">weight_delta</span>)<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ (<span class="w">0.20</span> × <span class="v">rfid_mismatch</span>) + (<span class="w">0.15</span> × <span class="v">dimension_variance</span>)
+    </div>
+    <div class="signal-grid">
+      <div class="signal-card" style="border-top-color:#c0392b;">
+        <div class="signal-pct">40%</div>
+        <div class="signal-name">🖼️ Image Similarity</div>
+        <div class="signal-desc">ResNet50 embeddings compared between packing X-ray and received-item photo. Cosine similarity &lt; 0.5 = high risk.</div>
+      </div>
+      <div class="signal-card" style="border-top-color:#b8804a;">
+        <div class="signal-pct">25%</div>
+        <div class="signal-name">⚖️ Weight Delta</div>
+        <div class="signal-desc">Declared vs. scanned weight at each checkpoint. &gt; 0.5 kg deviation contributes proportionally.</div>
+      </div>
+      <div class="signal-card" style="border-top-color:#2255aa;">
+        <div class="signal-pct">20%</div>
+        <div class="signal-name">📡 RFID Match</div>
+        <div class="signal-desc">Binary — tag scanned at delivery must match the tag attached at packing. Any mismatch = full contribution.</div>
+      </div>
+      <div class="signal-card" style="border-top-color:#1e7a4a;">
+        <div class="signal-pct">15%</div>
+        <div class="signal-name">📐 Dimensions</div>
+        <div class="signal-desc">Package dimensions checked at each hub scan. &gt; 15% variance is flagged.</div>
+      </div>
+    </div>
+  </div>
+  <div style="display:flex;gap:.8rem;flex-wrap:wrap;">
+    <div style="display:flex;align-items:center;gap:.4rem;padding:.5rem 1rem;border-radius:6px;background:#edf7f0;border:1px solid rgba(30,122,74,.2);font-size:.72rem;color:#1e7a4a;"><strong>0–29</strong> Clean</div>
+    <div style="display:flex;align-items:center;gap:.4rem;padding:.5rem 1rem;border-radius:6px;background:#f5f2e8;border:1px solid rgba(184,128,74,.25);font-size:.72rem;color:#7a5020;"><strong>30–49</strong> Low — logged</div>
+    <div style="display:flex;align-items:center;gap:.4rem;padding:.5rem 1rem;border-radius:6px;background:#fff8ec;border:1px solid rgba(192,57,43,.2);font-size:.72rem;color:#b07020;"><strong>50–69</strong> Medium — flagged</div>
+    <div style="display:flex;align-items:center;gap:.4rem;padding:.5rem 1rem;border-radius:6px;background:#fff0ee;border:1px solid rgba(192,57,43,.25);font-size:.72rem;color:#c0392b;"><strong>70–84</strong> High — inquiry opened</div>
+    <div style="display:flex;align-items:center;gap:.4rem;padding:.5rem 1rem;border-radius:6px;background:#fff0ee;border:1px solid rgba(192,57,43,.4);font-size:.72rem;color:#9b1b1b;font-weight:700;"><strong>85–100</strong> Critical — escalate</div>
+  </div>
+</section>
+<hr class="rule"/>
+
+<!-- Screens -->
+<section>
+  <div class="section-label">User Interfaces</div>
+  <h2 class="section-title">Seven Screens, Seven Roles</h2>
+  <p class="section-sub">Each screen was designed for a distinct user under distinct pressure. The aesthetic follows the audience — calm gold for worried customers, war-room red for fraud investigators.</p>
+  <div class="screens-grid">
+    <div class="screen-card" style="--accent:#4ade80;" onmouseover="" >
+      <div style="position:absolute;top:0;left:0;right:0;height:3px;background:#4ade80;"></div>
+      <div class="screen-num">01 · :3000/packing</div>
+      <div class="screen-name">🏭 Packing Portal</div>
+      <div class="screen-user">Warehouse staff</div>
+      <div class="screen-desc">New parcel intake with seller trust display, RFID generator, drag-and-drop X-ray + packing photo upload, live form validation checklist. View all parcels + trigger inline fraud analysis.</div>
+      <div><span class="screen-tag">Industrial terminal</span><span class="screen-tag">DM Mono</span><span class="screen-tag">Forest green</span></div>
+    </div>
+    <div class="screen-card">
+      <div style="position:absolute;top:0;left:0;right:0;height:3px;background:#4d7cff;"></div>
+      <div class="screen-num">02 · :3000/delivery</div>
+      <div class="screen-name">🚚 Delivery Verification</div>
+      <div class="screen-user">Courier agents</div>
+      <div class="screen-desc">Checkpoint scanner with courier identity card, live trust bar, 5 checkpoint types, parcel lookup by tracking number, RFID simulation, real-time weight delta validation, anomaly escalation flow.</div>
+      <div><span class="screen-tag">Field terminal</span><span class="screen-tag">Space Mono</span><span class="screen-tag">Electric blue</span></div>
+    </div>
+    <div class="screen-card">
+      <div style="position:absolute;top:0;left:0;right:0;height:3px;background:#ff4d4d;"></div>
+      <div class="screen-num">03 · :3000/admin</div>
+      <div class="screen-name">🛡️ Admin Dashboard</div>
+      <div class="screen-user">Operations managers</div>
+      <div class="screen-desc">7 KPI cards with trend deltas, live fraud event table (filterable by status), click-to-expand score breakdown modal, high-risk seller + courier sidebars with trust bars, fraud type breakdown chart.</div>
+      <div><span class="screen-tag">War-room</span><span class="screen-tag">IBM Plex Mono</span><span class="screen-tag">Signal red</span></div>
+    </div>
+    <div class="screen-card">
+      <div style="position:absolute;top:0;left:0;right:0;height:3px;background:#7c5cff;"></div>
+      <div class="screen-num">04 · :3000/inquiries</div>
+      <div class="screen-name">🔍 Inquiry System</div>
+      <div class="screen-user">Fraud investigators</div>
+      <div class="screen-desc">Three-panel case management — list with search/filter, detail view with full timeline, update controls (status, assignee, notes). Status counters, severity badges, auto-vs-manual case indicators.</div>
+      <div><span class="screen-tag">Legal case management</span><span class="screen-tag">JetBrains Mono</span><span class="screen-tag">Muted violet</span></div>
+    </div>
+    <div class="screen-card">
+      <div style="position:absolute;top:0;left:0;right:0;height:3px;background:#00c9b1;"></div>
+      <div class="screen-num">05 · :3000/trust</div>
+      <div class="screen-name">⭐ Trust Score System</div>
+      <div class="screen-user">Compliance team</div>
+      <div class="screen-desc">Seller and courier leaderboards with sparklines, radial score ring, 7-period bar chart, full trust event history, admin flag/suspend/reset controls with confirm dialog.</div>
+      <div><span class="screen-tag">Data observatory</span><span class="screen-tag">Recursive</span><span class="screen-tag">Deep teal</span></div>
+    </div>
+    <div class="screen-card">
+      <div style="position:absolute;top:0;left:0;right:0;height:3px;background:#00d4ff;"></div>
+      <div class="screen-num">06 · :3000/heatmap</div>
+      <div class="screen-name">🗺️ Fraud Heatmap</div>
+      <div class="screen-user">Strategy / leadership</div>
+      <div class="screen-desc">Interactive US threat map with SVG projection, glowing risk circles (3-layer pulse), rotating radar sweep, scanline animation, hotspot ranking sidebar, geographic fraud filtering.</div>
+      <div><span class="screen-tag">Military intel</span><span class="screen-tag">Black Ops One</span><span class="screen-tag">Radar cyan</span></div>
+    </div>
+    <div class="screen-card" style="grid-column:1/-1;">
+      <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#c6914a,#e8b870);"></div>
+      <div class="screen-num">07 · :3001/ — Customer Portal (separate app)</div>
+      <div class="screen-name">📦 Customer Portal</div>
+      <div class="screen-user">End customers (public-facing, no login)</div>
+      <div class="screen-desc">4-step flow: track parcel → enter details → upload received-item photo → AI analysis result. Navy hero section, Fraunces serif, warm gold tones. Claim status page with investigation timeline. Demo tracking numbers clickable. The only screen designed to feel calm and trustworthy rather than operational.</div>
+      <div><span class="screen-tag">Editorial luxury</span><span class="screen-tag">Fraunces</span><span class="screen-tag">Warm gold</span><span class="screen-tag">No auth needed</span></div>
+    </div>
+  </div>
+</section>
+<hr class="rule"/>
+
+<!-- API Reference -->
+<section>
+  <div class="section-label">Backend</div>
+  <h2 class="section-title">API Endpoints</h2>
+  <p class="section-sub">FastAPI · Python 3.11 · SQLAlchemy ORM · Alembic migrations · Interactive docs at <code style="font-family:var(--mono);font-size:.85em;background:var(--bg2);padding:.1rem .4rem;border-radius:3px;">/docs</code></p>
+
+  <div style="background:#fff;border:1.5px solid var(--bd);border-radius:12px;padding:1.2rem 1.4rem;">
+    <div class="api-group">
+      <div class="api-group-title">/api/parcels</div>
+      <div class="api-row"><span class="method POST">POST</span><span class="path">/</span><span class="desc">Create parcel with X-ray + packing images (multipart)</span></div>
+      <div class="api-row"><span class="method GET">GET</span><span class="path">/</span><span class="desc">List parcels — paginated, filterable by status/risk</span></div>
+      <div class="api-row"><span class="method GET">GET</span><span class="path">/track/{tracking}</span><span class="desc">Public tracking lookup by tracking number</span></div>
+      <div class="api-row"><span class="method GET">GET</span><span class="path">/{id}/checkpoints</span><span class="desc">All scan checkpoints for a parcel</span></div>
+    </div>
+    <div class="api-group">
+      <div class="api-group-title">/api/fraud</div>
+      <div class="api-row"><span class="method POST">POST</span><span class="path">/analyze/{parcel_id}</span><span class="desc">Trigger ResNet50 fraud analysis — returns scored event</span></div>
+      <div class="api-row"><span class="method GET">GET</span><span class="path">/events</span><span class="desc">List fraud events with status/type filters</span></div>
+      <div class="api-row"><span class="method PUT">PUT</span><span class="path">/events/{id}/status</span><span class="desc">Update event status + investigator notes</span></div>
+      <div class="api-row"><span class="method GET">GET</span><span class="path">/summary</span><span class="desc">Aggregate fraud stats for dashboard KPIs</span></div>
+    </div>
+    <div class="api-group">
+      <div class="api-group-title">/api/verification</div>
+      <div class="api-row"><span class="method POST">POST</span><span class="path">/checkpoint</span><span class="desc">Submit courier scan with photo, weight, RFID</span></div>
+      <div class="api-row"><span class="method GET">GET</span><span class="path">/couriers/{id}/recent</span><span class="desc">Courier's recent checkpoint activity</span></div>
+    </div>
+    <div class="api-group">
+      <div class="api-group-title">/api/inquiry &nbsp; /api/trust &nbsp; /api/heatmap &nbsp; /api/admin</div>
+      <div class="api-row"><span class="method GET">GET</span><span class="path">/inquiry</span><span class="desc">List + filter investigation cases</span></div>
+      <div class="api-row"><span class="method PUT">PUT</span><span class="path">/inquiry/{id}</span><span class="desc">Update case status, assignee, add timeline note</span></div>
+      <div class="api-row"><span class="method GET">GET</span><span class="path">/trust/sellers</span><span class="desc">Seller leaderboard with trust history</span></div>
+      <div class="api-row"><span class="method GET">GET</span><span class="path">/heatmap/hotspots</span><span class="desc">Top 20 fraud hotspot cities for map overlay</span></div>
+      <div class="api-row"><span class="method GET">GET</span><span class="path">/admin/dashboard</span><span class="desc">KPI summary: counts, averages, fraud rate %</span></div>
+    </div>
+  </div>
+</section>
+<hr class="rule"/>
+
+<!-- Trust mechanics -->
+<section>
+  <div class="section-label">Trust Scoring</div>
+  <h2 class="section-title">Reputation as a Deterrent</h2>
+  <p class="section-sub">Trust scores start at 80.0. They climb slowly with clean deliveries and drop sharply when fraud is confirmed. Scores below 40 are auto-flagged. Couriers below 25 are recommended for suspension.</p>
+
+  <div style="background:#fff;border:1.5px solid var(--bd);border-radius:12px;padding:1.2rem 1.4rem;max-width:600px;">
+    <div class="trust-row">
+      <div class="trust-delta" style="color:var(--green);">+1.5</div>
+      <div class="trust-event">Clean delivery streak (every 5 parcels)</div>
+      <div class="trust-bar-wrap"><div class="trust-bar-fill" style="width:8%;background:var(--green);"></div></div>
+    </div>
+    <div class="trust-row">
+      <div class="trust-delta" style="color:#c0922b;">−3.0</div>
+      <div class="trust-event">LOW fraud detected</div>
+      <div class="trust-bar-wrap"><div class="trust-bar-fill" style="width:15%;background:#c0922b;"></div></div>
+    </div>
+    <div class="trust-row">
+      <div class="trust-delta" style="color:#c06020;">−5.0</div>
+      <div class="trust-event">MEDIUM fraud detected</div>
+      <div class="trust-bar-wrap"><div class="trust-bar-fill" style="width:25%;background:#c06020;"></div></div>
+    </div>
+    <div class="trust-row">
+      <div class="trust-delta" style="color:var(--red);">−15.0</div>
+      <div class="trust-event">HIGH fraud confirmed</div>
+      <div class="trust-bar-wrap"><div class="trust-bar-fill" style="width:60%;background:var(--red);"></div></div>
+    </div>
+    <div class="trust-row" style="border:none;">
+      <div class="trust-delta" style="color:#8b1010;font-size:1.1rem;">−25.0</div>
+      <div class="trust-event">CRITICAL fraud confirmed</div>
+      <div class="trust-bar-wrap"><div class="trust-bar-fill" style="width:100%;background:#8b1010;"></div></div>
+    </div>
+  </div>
+</section>
+<hr class="rule"/>
+
+<!-- Build summary -->
+<section>
+  <div class="section-label">What Was Built</div>
+  <h2 class="section-title">Project by the Numbers</h2>
+  <div class="build-grid" style="margin-bottom:1.5rem;">
+    <div class="build-card"><div class="build-num">7</div><div class="build-lbl">UI screens</div></div>
+    <div class="build-card"><div class="build-num">8</div><div class="build-lbl">API routers</div></div>
+    <div class="build-card"><div class="build-num">2</div><div class="build-lbl">AI services</div></div>
+    <div class="build-card"><div class="build-num">7</div><div class="build-lbl">DB tables</div></div>
+    <div class="build-card"><div class="build-num">12</div><div class="build-lbl">FK relationships</div></div>
+    <div class="build-card"><div class="build-num">5</div><div class="build-lbl">DB enums</div></div>
+  </div>
+
+  <div class="section-label" style="margin-top:1.5rem;">Stack</div>
+  <div class="stack-grid" style="margin-top:.5rem;">
+    <div class="stack-badge">⚡ FastAPI</div>
+    <div class="stack-badge">🐘 PostgreSQL</div>
+    <div class="stack-badge">🔗 SQLAlchemy</div>
+    <div class="stack-badge">🧬 Alembic</div>
+    <div class="stack-badge">🤖 ResNet50</div>
+    <div class="stack-badge">⚛️ React 18</div>
+    <div class="stack-badge">🚀 Vite 5</div>
+    <div class="stack-badge">🗺️ Leaflet</div>
+    <div class="stack-badge">📊 Recharts</div>
+    <div class="stack-badge">🐻 Zustand</div>
+    <div class="stack-badge">📂 react-dropzone</div>
+    <div class="stack-badge">🔐 JWT auth</div>
+  </div>
+</section>
+
+<!-- Quick start -->
+<section>
+  <div class="section-label">Getting Started</div>
+  <h2 class="section-title">Quick Start</h2>
+  <div style="background:#1a1612;border-radius:12px;padding:1.5rem;font-family:var(--mono);font-size:.78rem;line-height:2.1;color:#c8dce8;overflow-x:auto;">
+    <div style="color:#6a8898;margin-bottom:.5rem;"># 1. Database</div>
+    <div>createdb parcelguard</div>
+    <br/>
+    <div style="color:#6a8898;"># 2. Backend</div>
+    <div>cd backend && pip install -r requirements.txt</div>
+    <div>alembic upgrade head && python -m seed.seed_data</div>
+    <div>uvicorn app.main:app --reload --port 8000</div>
+    <br/>
+    <div style="color:#6a8898;"># 3. Ops frontend  →  http://localhost:3000</div>
+    <div>cd frontend && npm install && npm run dev</div>
+    <br/>
+    <div style="color:#6a8898;"># 4. Customer portal  →  http://localhost:3001</div>
+    <div>cd customer-portal && npm install && npm run dev</div>
+    <br/>
+    <div style="color:#b8804a;"># API docs  →  http://localhost:8000/docs</div>
+  </div>
+</section>
+
+</div>
+
+<footer>
+  <span>📦 ParcelGuard · Supply Chain Integrity Hackathon</span>
+  <span>Full-stack fraud detection · FastAPI + React · ResNet50 AI</span>
+</footer>
+
+</body>
+</html>

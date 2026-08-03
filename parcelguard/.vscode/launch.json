@@ -1,0 +1,80 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+
+    // ── FastAPI backend debugger ──────────────────────────────────────────────
+    {
+      "name": "⚡ Debug FastAPI",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "uvicorn",
+      "args": ["app.main:app", "--reload", "--port", "8000"],
+      "cwd": "${workspaceFolder:⚡ Backend (FastAPI)}",
+      "python": "${workspaceFolder:⚡ Backend (FastAPI)}/venv/bin/python",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder:⚡ Backend (FastAPI)}",
+        "APP_ENV": "development"
+      },
+      "console": "integratedTerminal",
+      "justMyCode": false
+    },
+
+    // ── Individual FastAPI file ───────────────────────────────────────────────
+    {
+      "name": "⚡ Debug current Python file",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${file}",
+      "cwd": "${workspaceFolder:⚡ Backend (FastAPI)}",
+      "python": "${workspaceFolder:⚡ Backend (FastAPI)}/venv/bin/python",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder:⚡ Backend (FastAPI)}"
+      },
+      "console": "integratedTerminal"
+    },
+
+    // ── Seed data ─────────────────────────────────────────────────────────────
+    {
+      "name": "🌱 Run seed data",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "seed.seed_data",
+      "cwd": "${workspaceFolder:⚡ Backend (FastAPI)}",
+      "python": "${workspaceFolder:⚡ Backend (FastAPI)}/venv/bin/python",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder:⚡ Backend (FastAPI)}"
+      },
+      "console": "integratedTerminal"
+    },
+
+    // ── React frontends via Chrome ────────────────────────────────────────────
+    {
+      "name": "🖥️ Debug Frontend (Chrome)",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:3000",
+      "webRoot": "${workspaceFolder:🖥️ Frontend (Ops :3000)}/src",
+      "sourceMapPathOverrides": {
+        "webpack:///src/*": "${webRoot}/*"
+      }
+    },
+    {
+      "name": "👤 Debug Customer Portal (Chrome)",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:3001",
+      "webRoot": "${workspaceFolder:👤 Customer Portal (:3001)}/src",
+      "sourceMapPathOverrides": {
+        "webpack:///src/*": "${webRoot}/*"
+      }
+    }
+  ],
+
+  "compounds": [
+    {
+      "name": "🚀 Full Stack (Backend + Chrome)",
+      "configurations": ["⚡ Debug FastAPI", "🖥️ Debug Frontend (Chrome)"],
+      "stopAll": true
+    }
+  ]
+}
